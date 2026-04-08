@@ -83,6 +83,7 @@ public abstract class AbstractCharacter {
     // ---- Setters ----
 
     public void setHp(int hp) { this.hp = hp; }
+    public void setMaxHp(int maxHp) { this.maxHp = maxHp; }
     public void setDefending(boolean defending) { this.defending = defending; }
 
     @Override

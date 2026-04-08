@@ -1,26 +1,64 @@
+
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Ashen Throne
 
 Turn-based dark fantasy combat game. Java 17 + libGDX 1.12 + Gradle.
 
+## Commands
+
+```bash
+./gradlew desktop:run          # Run the game
+./gradlew core:compileJava     # Compile core module only (fast check)
+./gradlew build                # Full build (all modules)
+./gradlew desktop:jar          # Build fat JAR (Main-Class: DesktopLauncher)
+./gradlew core:test            # Run tests (once tests exist)
+```
+
+No linting or test framework is configured yet. Add JUnit 5 to `core/build.gradle` under `testImplementation` when writing tests.
+
 ## Project Structure
-- `core/` — all game logic (platform-agnostic)
-- `desktop/` — desktop launcher (LWJGL3 backend)
-- Assets go in `core/assets/`
+
+```
+core/src/main/java/com/ashenthrone/
+  core/          — AshenThroneGame (Game singleton), GameSession (run state singleton)
+  characters/    — AbstractCharacter, Hero, Enemy, HeroBuilder, EnemyBuilder
+  screens/       — (planned) MainMenuScreen, BattleScreen, VictoryScreen, DefeatScreen
+  battle/        — (planned) BattleEngine facade, state/, command/ subpackages
+  strategy/      — (planned) AttackStrategy implementations
+  equipment/     — (planned) CharacterDecorator and equipment decorators
+  observer/      — (planned) EventManager
+  ui/            — (planned) UIComponent composite tree
+  input/         — (planned) BattleInputAdapter
+  audio/         — (planned) AudioManager singleton
+desktop/src/     — DesktopLauncher only; never imported from core
+core/assets/     — game assets (textures, audio, etc.)
+```
 
 ## Architecture
-- Single-hero encounter-based combat using 14 Gang of Four design patterns
-- Package map: core, screens, characters, characters/prototype, factory, battle, battle/state, battle/command, strategy, equipment, observer, ui, input, audio
+
+Single-hero encounter-based combat using 14 Gang of Four patterns. The game progresses through a sequence of battle encounters; `GameSession` tracks run state (hero, gold, encounter index).
+
+**libGDX lifecycle:** `AshenThroneGame.create()` fires once after OpenGL context is ready → set the initial `Screen`. Each frame, `Game.render()` delegates to the current `Screen`. Screen transitions go through `AshenThroneGame.setScreen()`.
+
+**Turn skeleton (Template Method):** `AbstractCharacter.takeTurn()` is `final` — sequence is `beginTurn() → applyStatusEffects() → chooseAction() → executeAction() → endTurn()`. Only `chooseAction()` is abstract; Hero awaits player input, Enemy runs AI.
+
+**Planned wiring (many TODOs still in code):**
+- `GameSession.hero` is `Object` until AT-003+; `GameSession.inventory` is `List<Object>` until items exist
+- `AbstractCharacter.currentStrategy` is `Object` until AT-008 introduces `AttackStrategy`
+- `BattleScreen` will delegate all logic to `BattleEngine` (AT-010 Facade), never touching subsystems directly
+- All screen transitions route through `AshenThroneGame.setScreen()`; `AshenThroneGame` itself is a singleton
 
 ## Conventions
-- Builders for any class with 4+ constructor params (HeroBuilder, EnemyBuilder)
-- Singletons use lazy init with private constructor + getInstance()
-- getAttack()/getDefense() must stay non-final (Decorator pattern wraps them)
-- Enemy implements Cloneable for Prototype pattern
-- All game logic goes in `core/`, never import desktop packages from core
-- Template Method: takeTurn() is final in AbstractCharacter, subclasses override chooseAction()
 
-## How to Run
-`./gradlew desktop:run` or run DesktopLauncher.main() in IntelliJ
+- Builders for any class with 4+ constructor params (`HeroBuilder`, `EnemyBuilder`)
+- Singletons: lazy init, private constructor, `getInstance()` — no double-checked locking needed (single-threaded game loop)
+- `getAttack()`/`getDefense()` must stay non-`final` — the Decorator pattern (AT-005) overrides them
+- `Enemy` implements `Cloneable` for the Prototype pattern (AT-003)
+- All game logic in `core/`; never import `desktop` packages from `core`
+- `TODO: AT-XXX` comments mark planned integration points — keep them until the task is implemented
 
 ---
 
@@ -34,7 +72,7 @@ Initialize libGDX project with Gradle. Create AshenThroneGame main class extendi
 **Sprint 1 | 5 SP | Builder, Template Method**
 Create AbstractCharacter base class with fields: name, hp, maxHp, attack, defense, speed. Implement final takeTurn() template method: beginTurn() → applyStatusEffects() → chooseAction() → executeAction() → endTurn(). Create Hero subclass (overrides chooseAction for player input) and Enemy subclass (overrides chooseAction for AI). Implement HeroBuilder and EnemyBuilder with fluent API: new HeroBuilder().name("Kael").hp(120).attack(18).defense(12).build().
 
-### AT-003 — Enemy Prototype Registry ⬜
+### AT-003 — Enemy Prototype Registry ✅
 **Sprint 1 | 3 SP | Prototype**
 Create Cloneable interface on Enemy class. Build EnemyRegistry that stores pre-configured enemy templates: ShadowCrawler, Wraith, HollowWolf, Treant, HollowKing. Implement clone() that deep-copies stats with ±5% HP variance. Registry loaded once at startup, all enemy spawning goes through clone.
 
