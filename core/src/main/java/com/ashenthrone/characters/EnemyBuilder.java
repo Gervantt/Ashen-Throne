@@ -48,6 +48,7 @@ public class EnemyBuilder {
     public Enemy build() {
         if (enemy.name == null) throw new IllegalStateException("Enemy must have a name");
         if (enemy.maxHp <= 0) throw new IllegalStateException("Enemy must have positive HP");
+        if (enemy.speed <= 0) throw new IllegalStateException("Enemy must have positive speed");
         return enemy;
     }
 }
