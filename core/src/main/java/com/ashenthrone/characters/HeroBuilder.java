@@ -43,6 +43,7 @@ public class HeroBuilder {
     public Hero build() {
         if (hero.name == null) throw new IllegalStateException("Hero must have a name");
         if (hero.maxHp <= 0) throw new IllegalStateException("Hero must have positive HP");
+        if (hero.speed <= 0) throw new IllegalStateException("Hero must have positive speed");
         return hero;
     }
 }

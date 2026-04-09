@@ -59,6 +59,8 @@ public class EnemyRegistry {
      * Useful for tests and future content additions.
      */
     public void register(String type, Enemy template) {
+        if (type == null) throw new IllegalArgumentException("Enemy type key must not be null");
+        if (template == null) throw new IllegalArgumentException("Enemy template must not be null");
         templates.put(type, template);
     }
 

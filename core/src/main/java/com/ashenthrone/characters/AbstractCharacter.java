@@ -58,11 +58,13 @@ public abstract class AbstractCharacter {
     // ---- Combat helpers ----
 
     public void takeDamage(int amount) {
+        if (amount < 0) throw new IllegalArgumentException("Damage amount must be non-negative, got: " + amount);
         int effective = defending ? amount / 2 : amount;
         hp = Math.max(0, hp - effective);
     }
 
     public void heal(int amount) {
+        if (amount < 0) throw new IllegalArgumentException("Heal amount must be non-negative, got: " + amount);
         hp = Math.min(maxHp, hp + amount);
     }
 
@@ -82,8 +84,15 @@ public abstract class AbstractCharacter {
 
     // ---- Setters ----
 
-    public void setHp(int hp) { this.hp = hp; }
-    public void setMaxHp(int maxHp) { this.maxHp = maxHp; }
+    public void setHp(int hp) {
+        if (hp < 0) throw new IllegalArgumentException("HP must be non-negative, got: " + hp);
+        this.hp = hp;
+    }
+
+    public void setMaxHp(int maxHp) {
+        if (maxHp <= 0) throw new IllegalArgumentException("Max HP must be positive, got: " + maxHp);
+        this.maxHp = maxHp;
+    }
     public void setDefending(boolean defending) { this.defending = defending; }
 
     @Override
