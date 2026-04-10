@@ -18,7 +18,7 @@ public class CursedRing extends CharacterDecorator {
 
     @Override
     public int getAttack() {
-        return super.getAttack() - ATTACK_PENALTY;
+        return Math.max(0, super.getAttack() - ATTACK_PENALTY);
     }
 
     @Override
