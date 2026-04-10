@@ -76,11 +76,11 @@ Create AbstractCharacter base class with fields: name, hp, maxHp, attack, defens
 **Sprint 1 | 3 SP | Prototype**
 Create Cloneable interface on Enemy class. Build EnemyRegistry that stores pre-configured enemy templates: ShadowCrawler, Wraith, HollowWolf, Treant, HollowKing. Implement clone() that deep-copies stats with ±5% HP variance. Registry loaded once at startup, all enemy spawning goes through clone.
 
-### AT-004 — Realm Factories & Enemy Spawner ⬜
+### AT-004 — Realm Factories & Enemy Spawner ✅
 **Sprint 2 | 5 SP | Abstract Factory, Factory Method**
 Create RealmFactory interface: createMinion(), createElite(), createBoss(), createBackground(). Implement AbyssRealmFactory (returns ShadowCrawler, Wraith, HollowKing) and CursedForestFactory (returns HollowWolf, Treant, HollowKing). Create abstract EnemySpawner with spawnWave(int count) calling abstract createEnemy(). Subclasses AbyssSpawner and ForestSpawner override createEnemy().
 
-### AT-005 — Equipment Decorator System ⬜
+### AT-005 — Equipment Decorator System ✅
 **Sprint 2 | 5 SP | Decorator**
 Create CharacterDecorator extending AbstractCharacter that wraps a base character. Override getAttack() and getDefense() to delegate + modify. Implement 3 equipment decorators: FireAmulet (+5 attack), CursedRing (+8 defense, -2 attack), ShadowBlade (+10 attack). Equipment applied between encounters. Example: new FireAmulet(new CursedRing(baseHero)). Each decorator modifies stats through wrapping.
 
