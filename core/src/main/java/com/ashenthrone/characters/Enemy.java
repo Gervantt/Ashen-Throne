@@ -38,7 +38,7 @@ public class Enemy extends AbstractCharacter implements Cloneable {
             return copy;
         } catch (CloneNotSupportedException e) {
             // Can't happen — we implement Cloneable.
-            throw new AssertionError(e);
+            throw new IllegalStateException("Clone failed on a Cloneable class", e);
         }
     }
 

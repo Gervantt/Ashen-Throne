@@ -1,6 +1,7 @@
 package com.ashenthrone.core;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -42,10 +43,13 @@ public class GameSession {
     public void setHero(Object hero) { this.hero = hero; }
 
     public int getGold() { return gold; }
-    public void addGold(int amount) { this.gold += amount; }
+    public void addGold(int amount) {
+        if (amount < 0) throw new IllegalArgumentException("Gold amount must be non-negative, got: " + amount);
+        this.gold += amount;
+    }
 
     public int getCurrentEncounterIndex() { return currentEncounterIndex; }
     public void advanceEncounter() { this.currentEncounterIndex++; }
 
-    public List<Object> getInventory() { return inventory; }
+    public List<Object> getInventory() { return Collections.unmodifiableList(inventory); }
 }
