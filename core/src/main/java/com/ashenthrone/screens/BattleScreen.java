@@ -1,5 +1,6 @@
 package com.ashenthrone.screens;
 
+import com.ashenthrone.battle.command.BattleCommand;
 import com.ashenthrone.battle.state.BattleState;
 import com.ashenthrone.battle.state.PlayerTurnState;
 import com.ashenthrone.characters.Enemy;
@@ -10,6 +11,8 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Gdx;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 
 /**
@@ -37,6 +40,9 @@ public class BattleScreen implements Screen {
     private BattleState currentState;
     private SpriteBatch batch;
 
+    // AT-007: command history for undo. TODO: AT-010 — move to BattleEngine.
+    private final Deque<BattleCommand> commandHistory = new ArrayDeque<>();
+
     public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
         this.game = game;
         this.hero = hero;
@@ -48,6 +54,7 @@ public class BattleScreen implements Screen {
     @Override
     public void show() {
         batch = new SpriteBatch();
+        commandHistory.clear();
         currentState = new PlayerTurnState(this);
     }
 
@@ -91,6 +98,26 @@ public class BattleScreen implements Screen {
     /** Transitions to a new state immediately (takes effect next frame). */
     public void setState(BattleState state) {
         this.currentState = state;
+    }
+
+    // ---- Command history (AT-007) ----
+
+    /** Executes a command and pushes it onto the undo history. */
+    public void executeCommand(BattleCommand command) {
+        command.execute();
+        commandHistory.push(command);
+    }
+
+    /** Undoes the most recent command. No-op if history is empty. */
+    public void undoLastCommand() {
+        if (!commandHistory.isEmpty()) {
+            commandHistory.pop().undo();
+        }
+    }
+
+    /** True if there is at least one command that can be undone. */
+    public boolean canUndo() {
+        return !commandHistory.isEmpty();
     }
 
     // ---- Accessors for states ----
