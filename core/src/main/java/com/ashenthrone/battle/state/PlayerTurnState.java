@@ -1,6 +1,11 @@
 package com.ashenthrone.battle.state;
 
 import com.ashenthrone.battle.ActionType;
+import com.ashenthrone.battle.command.AttackCommand;
+import com.ashenthrone.battle.command.BattleCommand;
+import com.ashenthrone.battle.command.DefendCommand;
+import com.ashenthrone.battle.command.SkillCommand;
+import com.ashenthrone.battle.command.UseItemCommand;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.screens.BattleScreen;
@@ -17,10 +22,12 @@ import java.util.List;
  *   1 — Attack   2 — Defend   3 — Skill   4 — Item
  *   Enter/Space — confirm selection
  *
- * On confirm the chosen action is executed inline (placeholder logic until
- * AT-007 wraps actions in BattleCommands and AT-010 routes them through
- * BattleEngine). After execution, transitions to AnimationState, which then
- * hands off to EnemyTurnState or VictoryState.
+ * On confirm the chosen action is wrapped in a BattleCommand (AT-007),
+ * executed via BattleScreen.executeCommand(), and pushed onto the undo history.
+ * Pressing Z before confirming a new action undoes the previous command.
+ * After execution, transitions to AnimationState → EnemyTurnState or VictoryState.
+ *
+ * TODO: AT-010 — route through BattleEngine.executePlayerAction(cmd)
  */
 public class PlayerTurnState implements BattleState {
 
@@ -42,6 +49,12 @@ public class PlayerTurnState implements BattleState {
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) selectedAction = ActionType.SKILL;
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_4)) selectedAction = ActionType.ITEM;
 
+        // AT-007: undo the previous turn's command before confirming a new action.
+        // TODO: AT-012 — map to BattleInputAdapter.onCancel() or dedicated undo binding
+        if (Gdx.input.isKeyJustPressed(Input.Keys.Z) && screen.canUndo()) {
+            screen.undoLastCommand();
+        }
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
                 || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             confirmAction();
@@ -57,6 +70,7 @@ public class PlayerTurnState implements BattleState {
     public void render(SpriteBatch batch) {
         // TODO: AT-011 — delegate to ActionMenu UIComponent
         // TODO: AT-015 — styled action buttons, highlight selected action
+        // TODO: AT-015 — show "(Z) Undo" button when screen.canUndo() is true
     }
 
     // ---- Action execution ----
@@ -66,28 +80,18 @@ public class PlayerTurnState implements BattleState {
         List<Enemy> enemies = screen.getEnemies();
         Enemy target = firstAliveEnemy(enemies);
 
-        // TODO: AT-007 — wrap each branch in a BattleCommand (execute + undo)
+        // AT-007: wrap each action in a BattleCommand, execute via screen so it lands
+        // on the history stack and can be undone on the next player turn.
         // TODO: AT-010 — route through BattleEngine.executePlayerAction(cmd)
-        switch (selectedAction) {
-            case ATTACK:
-                if (target != null) {
-                    int damage = Math.max(1, hero.getAttack() - target.getDefense());
-                    target.takeDamage(damage);
-                }
-                break;
-            case DEFEND:
-                hero.setDefending(true);
-                break;
-            case SKILL:
-                // TODO: AT-008 — execute hero's current AttackStrategy
-                if (target != null) {
-                    int damage = Math.max(1, hero.getAttack() - target.getDefense());
-                    target.takeDamage(damage);
-                }
-                break;
-            case ITEM:
-                // TODO: AT-007 — UseItemCommand consumes item from inventory
-                break;
+        BattleCommand cmd = switch (selectedAction) {
+            case ATTACK -> target != null ? new AttackCommand(hero, target) : null;
+            case DEFEND -> new DefendCommand(hero);
+            case SKILL  -> target != null ? new SkillCommand(hero, target) : null;
+            case ITEM   -> new UseItemCommand(hero);
+        };
+
+        if (cmd != null) {
+            screen.executeCommand(cmd);
         }
 
         BattleState nextState = enemies.stream().noneMatch(Enemy::isAlive)
