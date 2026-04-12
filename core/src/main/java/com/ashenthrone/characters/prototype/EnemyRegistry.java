@@ -2,6 +2,8 @@ package com.ashenthrone.characters.prototype;
 
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.EnemyBuilder;
+import com.ashenthrone.strategy.MagicAttack;
+import com.ashenthrone.strategy.PhysicalAttack;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -94,16 +96,23 @@ public class EnemyRegistry {
      *  HollowKing    120   18   10    7   Boss
      */
     private void registerDefaults() {
-        templates.put("ShadowCrawler", new EnemyBuilder()
+        // ShadowCrawler — fast melee minion uses a straight physical strike.
+        Enemy shadowCrawler = new EnemyBuilder()
                 .name("Shadow Crawler").type("ShadowCrawler")
                 .hp(40).attack(10).defense(5).speed(8)
-                .build());
+                .build();
+        shadowCrawler.setCurrentStrategy(new PhysicalAttack());
+        templates.put("ShadowCrawler", shadowCrawler);
 
-        templates.put("Wraith", new EnemyBuilder()
+        // Wraith — fast arcane attacker; ignores half of the hero's defence.
+        Enemy wraith = new EnemyBuilder()
                 .name("Wraith").type("Wraith")
                 .hp(35).attack(14).defense(3).speed(12)
-                .build());
+                .build();
+        wraith.setCurrentStrategy(new MagicAttack());
+        templates.put("Wraith", wraith);
 
+        // Remaining enemies default to physical combat; strategy fallback in Enemy.chooseAction().
         templates.put("HollowWolf", new EnemyBuilder()
                 .name("Hollow Wolf").type("HollowWolf")
                 .hp(50).attack(12).defense(6).speed(10)

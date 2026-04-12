@@ -3,6 +3,8 @@ package com.ashenthrone.battle.state;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.screens.BattleScreen;
+import com.ashenthrone.strategy.AttackStrategy;
+import com.ashenthrone.strategy.PhysicalAttack;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.Comparator;
@@ -70,11 +72,17 @@ public class EnemyTurnState implements BattleState {
         for (Enemy enemy : actingEnemies) {
             if (!hero.isAlive()) break;
 
-            // TODO: AT-008 — call enemy's AttackStrategy instead of inline formula
-            // TODO: AT-007 — wrap in AttackCommand so BattleEngine can undo/replay
+            // Resolve the enemy's strategy for this turn.
+            // chooseAction() is protected (Template Method), so the state machine
+            // reads the strategy set at spawn time (EnemyRegistry) and falls back
+            // to PhysicalAttack when none is assigned.
             // TODO: AT-010 — route through BattleEngine.executeEnemyTurns()
-            int damage = Math.max(1, enemy.getAttack() - hero.getDefense());
-            hero.takeDamage(damage);
+            // TODO: AT-007 — wrap in AttackCommand so BattleEngine can undo/replay
+            AttackStrategy strategy = enemy.getCurrentStrategy();
+            if (strategy == null) {
+                strategy = new PhysicalAttack();
+            }
+            strategy.execute(enemy, List.of(hero));
         }
     }
 }

@@ -1,37 +1,61 @@
 package com.ashenthrone.battle.command;
 
 import com.ashenthrone.characters.AbstractCharacter;
+import com.ashenthrone.strategy.AttackStrategy;
+import com.ashenthrone.strategy.PhysicalAttack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Executes the hero's active skill against a target.
+ * Executes the attacker's active {@link AttackStrategy} against a list of targets.
  *
- * Placeholder until AT-008 introduces AttackStrategy. Currently falls back
- * to the same formula as AttackCommand. Once AT-008 is done, execute() should
- * call {@code attacker.currentStrategy.execute(attacker, targets)} and record
- * the strategy's effect for reversal.
+ * Because strategies vary (single-target damage, AoE damage, self-heal), undo
+ * snapshots the HP of both the attacker and every target before execution and
+ * restores them all on undo — a safe, strategy-agnostic reversal.
+ *
+ * If the attacker has no strategy set, falls back to {@link PhysicalAttack}.
  */
 public class SkillCommand implements BattleCommand {
 
     private final AbstractCharacter attacker;
-    private final AbstractCharacter target;
-    private int targetHpBefore;
+    private final List<AbstractCharacter> targets;
 
-    public SkillCommand(AbstractCharacter attacker, AbstractCharacter target) {
+    // HP snapshots for undo
+    private int attackerHpBefore;
+    private final List<Integer> targetHpsBefore = new ArrayList<>();
+
+    /**
+     * @param attacker the character executing the skill
+     * @param targets  the characters affected (may be a single enemy, all enemies,
+     *                 or empty — strategy decides what to do)
+     */
+    public SkillCommand(AbstractCharacter attacker, List<AbstractCharacter> targets) {
         this.attacker = attacker;
-        this.target = target;
+        this.targets  = List.copyOf(targets);
     }
 
     @Override
     public void execute() {
-        targetHpBefore = target.getHp();
-        // TODO: AT-008 — call attacker.currentStrategy.execute(attacker, List.of(target))
-        int damage = Math.max(1, attacker.getAttack() - target.getDefense());
-        target.takeDamage(damage);
+        // Capture HP state before anything changes.
+        attackerHpBefore = attacker.getHp();
+        targetHpsBefore.clear();
+        for (AbstractCharacter t : targets) {
+            targetHpsBefore.add(t.getHp());
+        }
+
+        AttackStrategy strategy = attacker.getCurrentStrategy();
+        if (strategy == null) {
+            strategy = new PhysicalAttack();
+        }
+        strategy.execute(attacker, targets);
     }
 
     @Override
     public void undo() {
-        // TODO: AT-008 — reverse the strategy's specific effect (heal reversal, AoE restore, etc.)
-        target.setHp(targetHpBefore);
+        attacker.setHp(attackerHpBefore);
+        for (int i = 0; i < targets.size() && i < targetHpsBefore.size(); i++) {
+            targets.get(i).setHp(targetHpsBefore.get(i));
+        }
     }
 }
