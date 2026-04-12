@@ -1,4 +1,4 @@
-
+in 
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -84,15 +84,15 @@ Create RealmFactory interface: createMinion(), createElite(), createBoss(), crea
 **Sprint 2 | 5 SP | Decorator**
 Create CharacterDecorator extending AbstractCharacter that wraps a base character. Override getAttack() and getDefense() to delegate + modify. Implement 3 equipment decorators: FireAmulet (+5 attack), CursedRing (+8 defense, -2 attack), ShadowBlade (+10 attack). Equipment applied between encounters. Example: new FireAmulet(new CursedRing(baseHero)). Each decorator modifies stats through wrapping.
 
-### AT-006 — Battle State Machine ⬜
+### AT-006 — Battle State Machine ✅
 **Sprint 1 | 8 SP | State**
 Create BattleState interface with handleInput(), update(), render() methods. Implement 5 states: PlayerTurnState (shows action menu, waits for selection), EnemyTurnState (AI picks and executes actions sequentially), AnimationState (plays attack/damage visual feedback, 0.5-1s delay), VictoryState (show rewards, proceed button), DefeatState (show retry/menu buttons). BattleScreen holds currentState reference and delegates all calls. Each state transitions to the next via setState().
 
-### AT-007 — Command System with Undo ⬜
+### AT-007 — Command System with Undo ✅
 **Sprint 1 | 5 SP | Command**
 Create BattleCommand interface with execute() and undo(). Implement AttackCommand (stores target, damage dealt; undo restores target HP), DefendCommand (stores previous defense multiplier; undo resets it), SkillCommand (stores strategy used, target, effect; undo reverses), UseItemCommand (stores item consumed; undo returns to inventory). Add command history stack in BattleEngine. Add 'Undo' button visible during PlayerTurnState before confirm.
 
-### AT-008 — Strategy Pattern for Skills ⬜
+### AT-008 — Strategy Pattern for Skills ✅
 **Sprint 2 | 5 SP | Strategy**
 Create AttackStrategy interface: execute(AbstractCharacter attacker, List<AbstractCharacter> targets). Implement PhysicalAttack (single target, damage = atk - def), MagicAttack (single target, ignores 50% defense), HealSelf (restores 30% maxHp), AreaOfEffect (all enemies, 60% damage). Hero's current strategy swaps when player selects Skill submenu. Enemies hold fixed strategy reference (Wraith=MagicAttack, Crawler=PhysicalAttack).
 
