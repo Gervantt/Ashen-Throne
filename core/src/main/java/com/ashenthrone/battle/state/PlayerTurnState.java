@@ -9,11 +9,13 @@ import com.ashenthrone.battle.command.UseItemCommand;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.screens.BattleScreen;
+import com.ashenthrone.strategy.PhysicalAttack;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Active state while the player is choosing and confirming an action.
@@ -80,13 +82,26 @@ public class PlayerTurnState implements BattleState {
         List<Enemy> enemies = screen.getEnemies();
         Enemy target = firstAliveEnemy(enemies);
 
+        // Ensure the hero always has a strategy when the player presses SKILL.
+        // TODO: AT-013 — swap strategy via Skill submenu selection.
+        if (hero.getCurrentStrategy() == null) {
+            hero.setCurrentStrategy(new PhysicalAttack());
+        }
+
         // AT-007: wrap each action in a BattleCommand, execute via screen so it lands
         // on the history stack and can be undone on the next player turn.
         // TODO: AT-010 — route through BattleEngine.executePlayerAction(cmd)
+        List<Enemy> aliveEnemies = enemies.stream()
+                .filter(Enemy::isAlive)
+                .collect(Collectors.toList());
+
         BattleCommand cmd = switch (selectedAction) {
             case ATTACK -> target != null ? new AttackCommand(hero, target) : null;
             case DEFEND -> new DefendCommand(hero);
-            case SKILL  -> target != null ? new SkillCommand(hero, target) : null;
+            // SKILL uses the hero's current strategy; pass all alive enemies so AoE works.
+            case SKILL  -> !aliveEnemies.isEmpty()
+                    ? new SkillCommand(hero, List.copyOf(aliveEnemies))
+                    : null;
             case ITEM   -> new UseItemCommand(hero);
         };
 

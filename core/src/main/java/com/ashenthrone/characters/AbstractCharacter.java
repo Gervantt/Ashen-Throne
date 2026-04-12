@@ -1,8 +1,10 @@
 package com.ashenthrone.characters;
 
+import com.ashenthrone.strategy.AttackStrategy;
+
 /**
  * Base class for all characters (hero and enemies).
- * 
+ *
  * Uses the Template Method pattern: takeTurn() defines the fixed sequence,
  * subclasses override chooseAction() to provide player input or AI logic.
  */
@@ -16,8 +18,7 @@ public abstract class AbstractCharacter {
     protected int speed;
     protected boolean defending;
 
-    // Will be AttackStrategy once AT-008 is done.
-    protected Object currentStrategy; // TODO: change to AttackStrategy
+    protected AttackStrategy currentStrategy;
 
     protected AbstractCharacter() {}
 
@@ -81,6 +82,11 @@ public abstract class AbstractCharacter {
     public int getDefense() { return defense; }
     public int getSpeed() { return speed; }
     public boolean isDefending() { return defending; }
+    public AttackStrategy getCurrentStrategy() { return currentStrategy; }
+
+    public void setCurrentStrategy(AttackStrategy strategy) {
+        this.currentStrategy = strategy;
+    }
 
     // ---- Setters ----
 
