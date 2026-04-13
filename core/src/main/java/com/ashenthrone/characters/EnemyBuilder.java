@@ -46,9 +46,11 @@ public class EnemyBuilder {
     // TODO: public EnemyBuilder strategy(AttackStrategy strategy) — AT-008
 
     public Enemy build() {
-        if (enemy.name == null) throw new IllegalStateException("Enemy must have a name");
-        if (enemy.maxHp <= 0) throw new IllegalStateException("Enemy must have positive HP");
-        if (enemy.speed <= 0) throw new IllegalStateException("Enemy must have positive speed");
+        if (enemy.name == null)   throw new IllegalStateException("Enemy must have a name");
+        if (enemy.maxHp <= 0)    throw new IllegalStateException("Enemy must have positive HP");
+        if (enemy.attack <= 0)   throw new IllegalStateException("Enemy must have positive attack");
+        if (enemy.defense < 0)   throw new IllegalStateException("Enemy must have non-negative defense");
+        if (enemy.speed <= 0)    throw new IllegalStateException("Enemy must have positive speed");
         return enemy;
     }
 }

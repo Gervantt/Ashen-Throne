@@ -45,7 +45,8 @@ public class GameSession {
     public int getGold() { return gold; }
     public void addGold(int amount) {
         if (amount < 0) throw new IllegalArgumentException("Gold amount must be non-negative, got: " + amount);
-        this.gold += amount;
+        // Cap at Integer.MAX_VALUE to prevent silent overflow.
+        this.gold = (int) Math.min((long) gold + amount, Integer.MAX_VALUE);
     }
 
     public int getCurrentEncounterIndex() { return currentEncounterIndex; }

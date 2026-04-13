@@ -12,6 +12,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Gdx;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
@@ -44,9 +46,12 @@ public class BattleScreen implements Screen {
     private final Deque<BattleCommand> commandHistory = new ArrayDeque<>();
 
     public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
-        this.game = game;
-        this.hero = hero;
-        this.enemies = enemies;
+        if (game == null)    throw new IllegalArgumentException("game must not be null");
+        if (hero == null)    throw new IllegalArgumentException("hero must not be null");
+        if (enemies == null) throw new IllegalArgumentException("enemies must not be null");
+        this.game    = game;
+        this.hero    = hero;
+        this.enemies = new ArrayList<>(enemies); // defensive copy — caller cannot mutate our list
     }
 
     // ---- Screen lifecycle ----
@@ -123,6 +128,6 @@ public class BattleScreen implements Screen {
     // ---- Accessors for states ----
 
     public Hero getHero() { return hero; }
-    public List<Enemy> getEnemies() { return enemies; }
+    public List<Enemy> getEnemies() { return Collections.unmodifiableList(enemies); }
     public AshenThroneGame getGame() { return game; }
 }
