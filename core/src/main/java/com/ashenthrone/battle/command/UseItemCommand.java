@@ -1,6 +1,8 @@
 package com.ashenthrone.battle.command;
 
 import com.ashenthrone.characters.AbstractCharacter;
+import com.ashenthrone.observer.EventManager;
+import com.ashenthrone.observer.GameEvent;
 
 /**
  * Consumes an item from the player's inventory and applies its effect.
@@ -21,6 +23,8 @@ public class UseItemCommand implements BattleCommand {
     public void execute() {
         // TODO: consume item from GameSession.getInstance().getInventory()
         //       and apply its effect to user (or a target)
+        // Publish with null item until the item system is implemented (AT-014).
+        EventManager.getInstance().publish(GameEvent.itemUsed(null, user));
     }
 
     @Override

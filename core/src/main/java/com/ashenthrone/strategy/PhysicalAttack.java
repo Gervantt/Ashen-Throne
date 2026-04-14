@@ -18,7 +18,7 @@ public class PhysicalAttack implements AttackStrategy {
         AbstractCharacter target = targets.get(0);
         if (target == null) return;
         int damage = Math.max(1, attacker.getAttack() - target.getDefense());
-        target.takeDamage(damage);
+        target.takeDamage(attacker, damage);
     }
 
     @Override

@@ -17,7 +17,7 @@ public class AreaOfEffect implements AttackStrategy {
     public void execute(AbstractCharacter attacker, List<AbstractCharacter> targets) {
         for (AbstractCharacter target : targets) {
             int damage = Math.max(1, (int) ((attacker.getAttack() - target.getDefense()) * 0.6));
-            target.takeDamage(damage);
+            target.takeDamage(attacker, damage);
         }
     }
 

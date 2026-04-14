@@ -20,7 +20,7 @@ public class MagicAttack implements AttackStrategy {
         if (target == null) return;
         int effectiveDefense = target.getDefense() / 2;
         int damage = Math.max(1, attacker.getAttack() - effectiveDefense);
-        target.takeDamage(damage);
+        target.takeDamage(attacker, damage);
     }
 
     @Override

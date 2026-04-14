@@ -96,7 +96,7 @@ Create BattleCommand interface with execute() and undo(). Implement AttackComman
 **Sprint 2 | 5 SP | Strategy**
 Create AttackStrategy interface: execute(AbstractCharacter attacker, List<AbstractCharacter> targets). Implement PhysicalAttack (single target, damage = atk - def), MagicAttack (single target, ignores 50% defense), HealSelf (restores 30% maxHp), AreaOfEffect (all enemies, 60% damage). Hero's current strategy swaps when player selects Skill submenu. Enemies hold fixed strategy reference (Wraith=MagicAttack, Crawler=PhysicalAttack).
 
-### AT-009 — Observer Event System ⬜
+### AT-009 — Observer Event System ✅
 **Sprint 2 | 5 SP | Observer**
 Create EventManager with subscribe(EventType, EventListener) and publish(EventType, data). Define events: DAMAGE_DEALT (source, target, amount), CHARACTER_DIED (character), ITEM_USED (item, target), BATTLE_END (result). Subscribers: HealthBar UI updates on DAMAGE_DEALT, AudioManager plays SFX on DAMAGE_DEALT/CHARACTER_DIED, BattleLog appends text on all events, VictoryChecker evaluates win/lose on CHARACTER_DIED.
 
