@@ -1,5 +1,7 @@
 package com.ashenthrone.characters;
 
+import com.ashenthrone.observer.EventManager;
+import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.strategy.AttackStrategy;
 
 /**
@@ -58,10 +60,30 @@ public abstract class AbstractCharacter {
 
     // ---- Combat helpers ----
 
+    /**
+     * Applies damage from an unknown source.
+     * Publishes DAMAGE_DEALT with {@code source = null}; prefer
+     * {@link #takeDamage(AbstractCharacter, int)} when the attacker is known.
+     */
     public void takeDamage(int amount) {
+        takeDamage(null, amount);
+    }
+
+    /**
+     * Applies damage from {@code source} and publishes the appropriate events.
+     * If HP reaches zero, CHARACTER_DIED is also published.
+     *
+     * @param source the attacking character, or {@code null} if unknown
+     * @param amount raw damage before defence reduction
+     */
+    public void takeDamage(AbstractCharacter source, int amount) {
         if (amount < 0) throw new IllegalArgumentException("Damage amount must be non-negative, got: " + amount);
         int effective = defending ? amount / 2 : amount;
         hp = Math.max(0, hp - effective);
+        EventManager.getInstance().publish(GameEvent.damageDealt(source, this, effective));
+        if (hp == 0) {
+            EventManager.getInstance().publish(GameEvent.characterDied(this));
+        }
     }
 
     public void heal(int amount) {

@@ -1,6 +1,8 @@
 package com.ashenthrone.battle.state;
 
 import com.ashenthrone.core.GameSession;
+import com.ashenthrone.observer.EventManager;
+import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.screens.BattleScreen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -19,6 +21,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class DefeatState implements BattleState {
 
     private final BattleScreen screen;
+    private boolean eventPublished;
 
     public DefeatState(BattleScreen screen) {
         this.screen = screen;
@@ -39,7 +42,10 @@ public class DefeatState implements BattleState {
 
     @Override
     public void update(float delta) {
-        // Defeat is a terminal state; no per-frame logic needed.
+        if (!eventPublished) {
+            EventManager.getInstance().publish(GameEvent.battleEnd("DEFEAT"));
+            eventPublished = true;
+        }
     }
 
     @Override

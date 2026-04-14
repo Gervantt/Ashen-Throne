@@ -11,6 +11,13 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Gdx;
 
+import com.ashenthrone.observer.EventManager;
+import com.ashenthrone.observer.EventType;
+import com.ashenthrone.observer.listeners.AudioListener;
+import com.ashenthrone.observer.listeners.BattleLogListener;
+import com.ashenthrone.observer.listeners.HealthBarListener;
+import com.ashenthrone.observer.listeners.VictoryChecker;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -43,6 +50,10 @@ public class BattleScreen implements Screen {
     // AT-007: command history for undo. TODO: AT-010 — move to BattleEngine.
     private final Deque<BattleCommand> commandHistory = new ArrayDeque<>();
 
+    // AT-009: observer listeners — kept as fields so other systems can query their state.
+    private final BattleLogListener battleLog     = new BattleLogListener();
+    private final VictoryChecker    victoryChecker = new VictoryChecker();
+
     public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
         this.game = game;
         this.hero = hero;
@@ -55,6 +66,30 @@ public class BattleScreen implements Screen {
     public void show() {
         batch = new SpriteBatch();
         commandHistory.clear();
+
+        // AT-009: reset and re-register observers for this battle.
+        EventManager em = EventManager.getInstance();
+        em.clearAll();
+
+        battleLog.clear();
+        victoryChecker.reset();
+
+        em.subscribe(EventType.DAMAGE_DEALT,   new HealthBarListener());
+        em.subscribe(EventType.CHARACTER_DIED, new HealthBarListener());
+
+        AudioListener audio = new AudioListener();
+        em.subscribe(EventType.DAMAGE_DEALT,   audio);
+        em.subscribe(EventType.CHARACTER_DIED, audio);
+        em.subscribe(EventType.BATTLE_END,     audio);
+
+        em.subscribe(EventType.DAMAGE_DEALT,   battleLog);
+        em.subscribe(EventType.CHARACTER_DIED, battleLog);
+        em.subscribe(EventType.ITEM_USED,      battleLog);
+        em.subscribe(EventType.BATTLE_END,     battleLog);
+
+        em.subscribe(EventType.CHARACTER_DIED, victoryChecker);
+        em.subscribe(EventType.BATTLE_END,     victoryChecker);
+
         currentState = new PlayerTurnState(this);
     }
 
@@ -125,4 +160,8 @@ public class BattleScreen implements Screen {
     public Hero getHero() { return hero; }
     public List<Enemy> getEnemies() { return enemies; }
     public AshenThroneGame getGame() { return game; }
+
+    // AT-009: expose observers so UI (AT-011) and screen flow (AT-013) can read them.
+    public BattleLogListener getBattleLog()      { return battleLog; }
+    public VictoryChecker    getVictoryChecker() { return victoryChecker; }
 }

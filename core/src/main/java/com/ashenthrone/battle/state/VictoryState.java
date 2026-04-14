@@ -1,6 +1,8 @@
 package com.ashenthrone.battle.state;
 
 import com.ashenthrone.core.GameSession;
+import com.ashenthrone.observer.EventManager;
+import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.screens.BattleScreen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -47,6 +49,7 @@ public class VictoryState implements BattleState {
             GameSession.getInstance().addGold(reward);
             GameSession.getInstance().advanceEncounter();
             rewardGranted = true;
+            EventManager.getInstance().publish(GameEvent.battleEnd("VICTORY"));
         }
     }
 
