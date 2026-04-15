@@ -27,11 +27,9 @@ import java.util.List;
  * handleInput / update / render calls to it. States transition by calling
  * {@link #setState(BattleState)}.
  *
- * All battle logic is delegated to {@link BattleEngine} (AT-010).
+ * All battle logic is now delegated to {@link BattleEngine} (AT-010).
  * BattleScreen is a pure coordinator — it routes input and rendering to the
  * current state, and routes commands and queries to the engine.
- * Observer listeners (AT-009) are registered in show() and held as fields
- * so AT-011/AT-013 can read battle-log and victory state.
  *
  * Construction:
  *   new BattleScreen(AshenThroneGame.getInstance(), hero, enemies)
@@ -46,7 +44,7 @@ public class BattleScreen implements Screen {
     private BattleState currentState;
     private SpriteBatch batch;
 
-    // AT-009: observer listeners — held as fields so AT-011 UI and AT-013 screen flow can query them.
+    // AT-009: observer listeners — kept as fields so other systems can query their state.
     private final BattleLogListener battleLog      = new BattleLogListener();
     private final VictoryChecker    victoryChecker = new VictoryChecker();
 
@@ -56,7 +54,7 @@ public class BattleScreen implements Screen {
         if (enemies == null) throw new IllegalArgumentException("enemies must not be null");
         this.game   = game;
         this.engine = new BattleEngine();
-        engine.startBattle(hero, enemies);
+        engine.startBattle(hero, enemies); // AT-010: engine owns hero + enemies
     }
 
     // ---- Screen lifecycle ----
@@ -65,7 +63,7 @@ public class BattleScreen implements Screen {
     public void show() {
         batch = new SpriteBatch();
 
-        // AT-009: reset and re-register observers fresh for this battle.
+        // AT-009: reset and re-register observers for this battle.
         EventManager em = EventManager.getInstance();
         em.clearAll();
 
