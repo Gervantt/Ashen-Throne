@@ -7,6 +7,12 @@ import com.ashenthrone.battle.state.PlayerTurnState;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.core.AshenThroneGame;
+import com.ashenthrone.observer.EventManager;
+import com.ashenthrone.observer.EventType;
+import com.ashenthrone.observer.listeners.AudioListener;
+import com.ashenthrone.observer.listeners.BattleLogListener;
+import com.ashenthrone.observer.listeners.HealthBarListener;
+import com.ashenthrone.observer.listeners.VictoryChecker;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -21,9 +27,11 @@ import java.util.List;
  * handleInput / update / render calls to it. States transition by calling
  * {@link #setState(BattleState)}.
  *
- * All battle logic is now delegated to {@link BattleEngine} (AT-010).
+ * All battle logic is delegated to {@link BattleEngine} (AT-010).
  * BattleScreen is a pure coordinator — it routes input and rendering to the
  * current state, and routes commands and queries to the engine.
+ * Observer listeners (AT-009) are registered in show() and held as fields
+ * so AT-011/AT-013 can read battle-log and victory state.
  *
  * Construction:
  *   new BattleScreen(AshenThroneGame.getInstance(), hero, enemies)
@@ -38,6 +46,10 @@ public class BattleScreen implements Screen {
     private BattleState currentState;
     private SpriteBatch batch;
 
+    // AT-009: observer listeners — held as fields so AT-011 UI and AT-013 screen flow can query them.
+    private final BattleLogListener battleLog      = new BattleLogListener();
+    private final VictoryChecker    victoryChecker = new VictoryChecker();
+
     public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
         if (game == null)    throw new IllegalArgumentException("game must not be null");
         if (hero == null)    throw new IllegalArgumentException("hero must not be null");
@@ -51,7 +63,31 @@ public class BattleScreen implements Screen {
 
     @Override
     public void show() {
-        batch        = new SpriteBatch();
+        batch = new SpriteBatch();
+
+        // AT-009: reset and re-register observers fresh for this battle.
+        EventManager em = EventManager.getInstance();
+        em.clearAll();
+
+        battleLog.clear();
+        victoryChecker.reset();
+
+        em.subscribe(EventType.DAMAGE_DEALT,   new HealthBarListener());
+        em.subscribe(EventType.CHARACTER_DIED, new HealthBarListener());
+
+        AudioListener audio = new AudioListener();
+        em.subscribe(EventType.DAMAGE_DEALT,   audio);
+        em.subscribe(EventType.CHARACTER_DIED, audio);
+        em.subscribe(EventType.BATTLE_END,     audio);
+
+        em.subscribe(EventType.DAMAGE_DEALT,   battleLog);
+        em.subscribe(EventType.CHARACTER_DIED, battleLog);
+        em.subscribe(EventType.ITEM_USED,      battleLog);
+        em.subscribe(EventType.BATTLE_END,     battleLog);
+
+        em.subscribe(EventType.CHARACTER_DIED, victoryChecker);
+        em.subscribe(EventType.BATTLE_END,     victoryChecker);
+
         currentState = new PlayerTurnState(this);
     }
 
@@ -117,4 +153,8 @@ public class BattleScreen implements Screen {
 
     /** Exposes the engine so states can call executeEnemyTurns(), isOver(), getResult(). */
     public BattleEngine getBattleEngine() { return engine; }
+
+    // AT-009: expose observers so UI (AT-011) and screen flow (AT-013) can read them.
+    public BattleLogListener getBattleLog()      { return battleLog; }
+    public VictoryChecker    getVictoryChecker() { return victoryChecker; }
 }
