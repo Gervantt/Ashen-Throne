@@ -48,6 +48,10 @@ public class BattleScreen implements Screen {
     private final BattleLogListener battleLog      = new BattleLogListener();
     private final VictoryChecker    victoryChecker = new VictoryChecker();
 
+    // AT-009: observer listeners — kept as fields so other systems can query their state.
+    private final BattleLogListener battleLog     = new BattleLogListener();
+    private final VictoryChecker    victoryChecker = new VictoryChecker();
+
     public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
         if (game == null)    throw new IllegalArgumentException("game must not be null");
         if (hero == null)    throw new IllegalArgumentException("hero must not be null");
