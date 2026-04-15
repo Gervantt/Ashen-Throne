@@ -1,18 +1,17 @@
 package com.ashenthrone.screens;
 
+import com.ashenthrone.battle.BattleEngine;
 import com.ashenthrone.battle.command.BattleCommand;
 import com.ashenthrone.battle.state.BattleState;
 import com.ashenthrone.battle.state.PlayerTurnState;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.core.AshenThroneGame;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.Gdx;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.List;
 
 /**
@@ -22,9 +21,9 @@ import java.util.List;
  * handleInput / update / render calls to it. States transition by calling
  * {@link #setState(BattleState)}.
  *
- * BattleScreen intentionally knows nothing about battle logic — it is a
- * coordinator, not an actor. Once AT-010 is done, BattleScreen will talk to
- * BattleEngine instead of holding hero and enemies directly.
+ * All battle logic is now delegated to {@link BattleEngine} (AT-010).
+ * BattleScreen is a pure coordinator — it routes input and rendering to the
+ * current state, and routes commands and queries to the engine.
  *
  * Construction:
  *   new BattleScreen(AshenThroneGame.getInstance(), hero, enemies)
@@ -34,27 +33,25 @@ import java.util.List;
 public class BattleScreen implements Screen {
 
     private final AshenThroneGame game;
-    private final Hero hero;
-    private final List<Enemy> enemies;
+    private final BattleEngine    engine;
 
     private BattleState currentState;
     private SpriteBatch batch;
 
-    // AT-007: command history for undo. TODO: AT-010 — move to BattleEngine.
-    private final Deque<BattleCommand> commandHistory = new ArrayDeque<>();
-
     public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
-        this.game = game;
-        this.hero = hero;
-        this.enemies = enemies;
+        if (game == null)    throw new IllegalArgumentException("game must not be null");
+        if (hero == null)    throw new IllegalArgumentException("hero must not be null");
+        if (enemies == null) throw new IllegalArgumentException("enemies must not be null");
+        this.game   = game;
+        this.engine = new BattleEngine();
+        engine.startBattle(hero, enemies);
     }
 
     // ---- Screen lifecycle ----
 
     @Override
     public void show() {
-        batch = new SpriteBatch();
-        commandHistory.clear();
+        batch        = new SpriteBatch();
         currentState = new PlayerTurnState(this);
     }
 
@@ -79,14 +76,9 @@ public class BattleScreen implements Screen {
         // TODO: AT-015 — update viewport/camera on resize
     }
 
-    @Override
-    public void pause() {}
-
-    @Override
-    public void resume() {}
-
-    @Override
-    public void hide() {}
+    @Override public void pause()  {}
+    @Override public void resume() {}
+    @Override public void hide()   {}
 
     @Override
     public void dispose() {
@@ -100,29 +92,29 @@ public class BattleScreen implements Screen {
         this.currentState = state;
     }
 
-    // ---- Command history (AT-007) ----
+    // ---- Command delegation (AT-007 + AT-010) ----
 
-    /** Executes a command and pushes it onto the undo history. */
+    /** Executes a command through the engine and records it for undo. */
     public void executeCommand(BattleCommand command) {
-        command.execute();
-        commandHistory.push(command);
+        engine.executePlayerAction(command);
     }
 
     /** Undoes the most recent command. No-op if history is empty. */
     public void undoLastCommand() {
-        if (!commandHistory.isEmpty()) {
-            commandHistory.pop().undo();
-        }
+        engine.undoLastCommand();
     }
 
     /** True if there is at least one command that can be undone. */
     public boolean canUndo() {
-        return !commandHistory.isEmpty();
+        return engine.canUndo();
     }
 
     // ---- Accessors for states ----
 
-    public Hero getHero() { return hero; }
-    public List<Enemy> getEnemies() { return enemies; }
-    public AshenThroneGame getGame() { return game; }
+    public Hero        getHero()    { return engine.getHero(); }
+    public List<Enemy> getEnemies() { return engine.getEnemies(); }
+    public AshenThroneGame getGame()  { return game; }
+
+    /** Exposes the engine so states can call executeEnemyTurns(), isOver(), getResult(). */
+    public BattleEngine getBattleEngine() { return engine; }
 }

@@ -88,9 +88,7 @@ public class PlayerTurnState implements BattleState {
             hero.setCurrentStrategy(new PhysicalAttack());
         }
 
-        // AT-007: wrap each action in a BattleCommand, execute via screen so it lands
-        // on the history stack and can be undone on the next player turn.
-        // TODO: AT-010 — route through BattleEngine.executePlayerAction(cmd)
+        // SKILL passes all alive enemies so AoE strategies can hit each one.
         List<Enemy> aliveEnemies = enemies.stream()
                 .filter(Enemy::isAlive)
                 .collect(Collectors.toList());
@@ -98,7 +96,6 @@ public class PlayerTurnState implements BattleState {
         BattleCommand cmd = switch (selectedAction) {
             case ATTACK -> target != null ? new AttackCommand(hero, target) : null;
             case DEFEND -> new DefendCommand(hero);
-            // SKILL uses the hero's current strategy; pass all alive enemies so AoE works.
             case SKILL  -> !aliveEnemies.isEmpty()
                     ? new SkillCommand(hero, List.copyOf(aliveEnemies))
                     : null;
@@ -106,10 +103,12 @@ public class PlayerTurnState implements BattleState {
         };
 
         if (cmd != null) {
+            // AT-010: route through BattleEngine.executePlayerAction()
             screen.executeCommand(cmd);
         }
 
-        BattleState nextState = enemies.stream().noneMatch(Enemy::isAlive)
+        // AT-010: use DeathChecker via BattleEngine instead of inline stream check.
+        BattleState nextState = "VICTORY".equals(screen.getBattleEngine().getResult())
                 ? new VictoryState(screen)
                 : new EnemyTurnState(screen);
 
