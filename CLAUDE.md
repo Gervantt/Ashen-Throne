@@ -1,3 +1,5 @@
+
+
 in 
 # CLAUDE.md
 
@@ -100,7 +102,7 @@ Create AttackStrategy interface: execute(AbstractCharacter attacker, List<Abstra
 **Sprint 2 | 5 SP | Observer**
 Create EventManager with subscribe(EventType, EventListener) and publish(EventType, data). Define events: DAMAGE_DEALT (source, target, amount), CHARACTER_DIED (character), ITEM_USED (item, target), BATTLE_END (result). Subscribers: HealthBar UI updates on DAMAGE_DEALT, AudioManager plays SFX on DAMAGE_DEALT/CHARACTER_DIED, BattleLog appends text on all events, VictoryChecker evaluates win/lose on CHARACTER_DIED.
 
-### AT-010 — BattleEngine Facade ⬜
+### AT-010 — BattleEngine Facade ✅
 **Sprint 2 | 5 SP | Facade**
 Create BattleEngine class exposing: startBattle(Hero hero, List<Enemy> enemies), executePlayerAction(BattleCommand cmd), executeEnemyTurns(), isOver(), getResult(). Internally coordinates: TurnManager (track turn order by speed), DamageCalculator (apply formulas, crits, defense), StatusEffectProcessor (poison, buffs per turn), DeathChecker (remove dead, check win/lose). BattleScreen only talks to BattleEngine, never to subsystems directly.
 

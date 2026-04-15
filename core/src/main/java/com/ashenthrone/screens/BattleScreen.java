@@ -1,27 +1,23 @@
 package com.ashenthrone.screens;
 
+import com.ashenthrone.battle.BattleEngine;
 import com.ashenthrone.battle.command.BattleCommand;
 import com.ashenthrone.battle.state.BattleState;
 import com.ashenthrone.battle.state.PlayerTurnState;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.core.AshenThroneGame;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.Gdx;
-
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.EventType;
 import com.ashenthrone.observer.listeners.AudioListener;
 import com.ashenthrone.observer.listeners.BattleLogListener;
 import com.ashenthrone.observer.listeners.HealthBarListener;
 import com.ashenthrone.observer.listeners.VictoryChecker;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.List;
 
 /**
@@ -31,9 +27,9 @@ import java.util.List;
  * handleInput / update / render calls to it. States transition by calling
  * {@link #setState(BattleState)}.
  *
- * BattleScreen intentionally knows nothing about battle logic — it is a
- * coordinator, not an actor. Once AT-010 is done, BattleScreen will talk to
- * BattleEngine instead of holding hero and enemies directly.
+ * All battle logic is now delegated to {@link BattleEngine} (AT-010).
+ * BattleScreen is a pure coordinator — it routes input and rendering to the
+ * current state, and routes commands and queries to the engine.
  *
  * Construction:
  *   new BattleScreen(AshenThroneGame.getInstance(), hero, enemies)
@@ -43,14 +39,14 @@ import java.util.List;
 public class BattleScreen implements Screen {
 
     private final AshenThroneGame game;
-    private final Hero hero;
-    private final List<Enemy> enemies;
+    private final BattleEngine    engine;
 
     private BattleState currentState;
     private SpriteBatch batch;
 
-    // AT-007: command history for undo. TODO: AT-010 — move to BattleEngine.
-    private final Deque<BattleCommand> commandHistory = new ArrayDeque<>();
+    // AT-009: observer listeners — kept as fields so other systems can query their state.
+    private final BattleLogListener battleLog      = new BattleLogListener();
+    private final VictoryChecker    victoryChecker = new VictoryChecker();
 
     // AT-009: observer listeners — kept as fields so other systems can query their state.
     private final BattleLogListener battleLog     = new BattleLogListener();
@@ -60,9 +56,9 @@ public class BattleScreen implements Screen {
         if (game == null)    throw new IllegalArgumentException("game must not be null");
         if (hero == null)    throw new IllegalArgumentException("hero must not be null");
         if (enemies == null) throw new IllegalArgumentException("enemies must not be null");
-        this.game    = game;
-        this.hero    = hero;
-        this.enemies = new ArrayList<>(enemies); // defensive copy — caller cannot mutate our list
+        this.game   = game;
+        this.engine = new BattleEngine();
+        engine.startBattle(hero, enemies); // AT-010: engine owns hero + enemies
     }
 
     // ---- Screen lifecycle ----
@@ -70,7 +66,6 @@ public class BattleScreen implements Screen {
     @Override
     public void show() {
         batch = new SpriteBatch();
-        commandHistory.clear();
 
         // AT-009: reset and re-register observers for this battle.
         EventManager em = EventManager.getInstance();
@@ -119,14 +114,9 @@ public class BattleScreen implements Screen {
         // TODO: AT-015 — update viewport/camera on resize
     }
 
-    @Override
-    public void pause() {}
-
-    @Override
-    public void resume() {}
-
-    @Override
-    public void hide() {}
+    @Override public void pause()  {}
+    @Override public void resume() {}
+    @Override public void hide()   {}
 
     @Override
     public void dispose() {
@@ -140,31 +130,31 @@ public class BattleScreen implements Screen {
         this.currentState = state;
     }
 
-    // ---- Command history (AT-007) ----
+    // ---- Command delegation (AT-007 + AT-010) ----
 
-    /** Executes a command and pushes it onto the undo history. */
+    /** Executes a command through the engine and records it for undo. */
     public void executeCommand(BattleCommand command) {
-        command.execute();
-        commandHistory.push(command);
+        engine.executePlayerAction(command);
     }
 
     /** Undoes the most recent command. No-op if history is empty. */
     public void undoLastCommand() {
-        if (!commandHistory.isEmpty()) {
-            commandHistory.pop().undo();
-        }
+        engine.undoLastCommand();
     }
 
     /** True if there is at least one command that can be undone. */
     public boolean canUndo() {
-        return !commandHistory.isEmpty();
+        return engine.canUndo();
     }
 
     // ---- Accessors for states ----
 
-    public Hero getHero() { return hero; }
-    public List<Enemy> getEnemies() { return Collections.unmodifiableList(enemies); }
-    public AshenThroneGame getGame() { return game; }
+    public Hero        getHero()    { return engine.getHero(); }
+    public List<Enemy> getEnemies() { return engine.getEnemies(); }
+    public AshenThroneGame getGame()  { return game; }
+
+    /** Exposes the engine so states can call executeEnemyTurns(), isOver(), getResult(). */
+    public BattleEngine getBattleEngine() { return engine; }
 
     // AT-009: expose observers so UI (AT-011) and screen flow (AT-013) can read them.
     public BattleLogListener getBattleLog()      { return battleLog; }
