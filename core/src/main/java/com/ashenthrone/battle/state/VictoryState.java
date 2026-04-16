@@ -54,8 +54,7 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
 
     @Override
     public void render(SpriteBatch batch) {
-        // TODO: AT-011 — render VictoryUI panel (gold earned, proceed button)
-        // TODO: AT-015 — full visual layout
+        // TODO: AT-015 — VictoryUI panel (gold earned, proceed button)
     }
 
     // ---- BattleInputAdapter.ActionListener ----
