@@ -7,6 +7,7 @@ import com.ashenthrone.battle.state.PlayerTurnState;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.core.AshenThroneGame;
+import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.EventType;
 import com.ashenthrone.observer.listeners.AudioListener;
@@ -36,9 +37,9 @@ import java.util.List;
  * BattleScreen is a pure coordinator — it routes input and rendering to the
  * current state, and routes commands and queries to the engine.
  *
- * The battle HUD (AT-011) is a Composite UIComponent tree owned by this screen.
- * It is rendered every frame after the current state's render call, so it always
- * appears on top of any state-specific drawing.
+ * Input is translated from raw libGDX events to game-level callbacks by
+ * {@link BattleInputAdapter} (AT-012). States register as listeners via
+ * {@link BattleInputAdapter#setListener} in their constructors.
  *
  * Construction:
  *   new BattleScreen(AshenThroneGame.getInstance(), hero, enemies)
@@ -53,13 +54,12 @@ public class BattleScreen implements Screen {
     private BattleState currentState;
     private SpriteBatch batch;
 
+    // AT-012: single adapter instance — registered with Gdx.input for the lifetime of this screen.
+    private final BattleInputAdapter inputAdapter = new BattleInputAdapter();
+
     // AT-009: observer listeners — kept as fields so other systems can query their state.
     private final BattleLogListener battleLog      = new BattleLogListener();
     private final VictoryChecker    victoryChecker = new VictoryChecker();
-
-    // AT-011: root HUD panel and direct reference to the action menu for state access.
-    private Panel      battleHud;
-    private ActionMenu actionMenu;
 
     public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
         if (game == null)    throw new IllegalArgumentException("game must not be null");
@@ -99,8 +99,9 @@ public class BattleScreen implements Screen {
         em.subscribe(EventType.CHARACTER_DIED, victoryChecker);
         em.subscribe(EventType.BATTLE_END,     victoryChecker);
 
-        // AT-011: build the Composite HUD tree.
-        buildHud();
+        // AT-012: register the adapter once; states swap the listener via setListener().
+        inputAdapter.setEnemyCount(engine.getEnemies().size());
+        Gdx.input.setInputProcessor(inputAdapter);
 
         currentState = new PlayerTurnState(this);
     }
@@ -166,8 +167,7 @@ public class BattleScreen implements Screen {
     @Override
     public void dispose() {
         batch.dispose();
-        battleHud.dispose();
-        UIComponent.disposeShared();
+        Gdx.input.setInputProcessor(null);
     }
 
     // ---- State machine ----
@@ -207,6 +207,6 @@ public class BattleScreen implements Screen {
     public BattleLogListener getBattleLog()      { return battleLog; }
     public VictoryChecker    getVictoryChecker() { return victoryChecker; }
 
-    // AT-011: expose action menu so PlayerTurnState can update the selected button.
-    public ActionMenu getActionMenu() { return actionMenu; }
+    // AT-012: expose adapter so states can register as listener in their constructor.
+    public BattleInputAdapter getInputAdapter() { return inputAdapter; }
 }

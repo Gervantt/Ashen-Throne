@@ -8,59 +8,49 @@ import com.ashenthrone.battle.command.SkillCommand;
 import com.ashenthrone.battle.command.UseItemCommand;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
+import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.screens.BattleScreen;
 import com.ashenthrone.strategy.PhysicalAttack;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Active state while the player is choosing and confirming an action.
+ * Active state while the player is choosing and confirming an action (AT-006).
  *
- * Key bindings (temporary until AT-012 BattleInputAdapter):
- *   1 — Attack   2 — Defend   3 — Skill   4 — Item
+ * Implements {@link BattleInputAdapter.ActionListener} so all input arrives
+ * via game-level callbacks — no libGDX Input constants here (AT-012).
+ *
+ * Key bindings (translated by BattleInputAdapter):
+ *   1-4        — select action (Attack / Defend / Skill / Item)
+ *   Left/Right — cycle enemy target
  *   Enter/Space — confirm selection
+ *   Z / Escape — undo the previous command
  *
- * On confirm the chosen action is wrapped in a BattleCommand (AT-007),
- * executed via BattleScreen.executeCommand(), and pushed onto the undo history.
- * Pressing Z before confirming a new action undoes the previous command.
- * After execution, transitions to AnimationState → EnemyTurnState or VictoryState.
- *
- * TODO: AT-010 — route through BattleEngine.executePlayerAction(cmd)
+ * On confirm, the chosen action is wrapped in a BattleCommand (AT-007),
+ * executed via BattleScreen.executeCommand(), then the state transitions to
+ * AnimationState → EnemyTurnState or VictoryState.
  */
-public class PlayerTurnState implements BattleState {
+public class PlayerTurnState implements BattleState, BattleInputAdapter.ActionListener {
 
     private final BattleScreen screen;
     private ActionType selectedAction;
+    private int        targetIndex;
 
     public PlayerTurnState(BattleScreen screen) {
-        this.screen = screen;
+        this.screen         = screen;
         this.selectedAction = ActionType.ATTACK;
+        this.targetIndex    = 0;
+        // AT-012: register as the active input listener for this state.
+        screen.getInputAdapter().setListener(this);
     }
 
     // ---- BattleState ----
 
     @Override
     public void handleInput() {
-        // TODO: AT-012 — replace with BattleInputAdapter.onActionSelected()
-        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) selectedAction = ActionType.ATTACK;
-        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) selectedAction = ActionType.DEFEND;
-        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) selectedAction = ActionType.SKILL;
-        if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_4)) selectedAction = ActionType.ITEM;
-
-        // AT-007: undo the previous turn's command before confirming a new action.
-        // TODO: AT-012 — map to BattleInputAdapter.onCancel() or dedicated undo binding
-        if (Gdx.input.isKeyJustPressed(Input.Keys.Z) && screen.canUndo()) {
-            screen.undoLastCommand();
-        }
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
-                || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            confirmAction();
-        }
+        // Input arrives via ActionListener callbacks — no polling needed.
     }
 
     @Override
@@ -75,12 +65,39 @@ public class PlayerTurnState implements BattleState {
         // TODO: AT-015 — show "(Z) Undo" button when screen.canUndo() is true
     }
 
+    // ---- BattleInputAdapter.ActionListener ----
+
+    @Override
+    public void onActionSelected(ActionType type) {
+        selectedAction = type;
+    }
+
+    @Override
+    public void onTargetSelected(int enemyIndex) {
+        targetIndex = enemyIndex;
+    }
+
+    @Override
+    public void onConfirm() {
+        confirmAction();
+    }
+
+    /** Z or Escape — undo the most recent command. */
+    @Override
+    public void onCancel() {
+        if (screen.canUndo()) {
+            screen.undoLastCommand();
+        }
+    }
+
     // ---- Action execution ----
 
     private void confirmAction() {
         Hero hero = screen.getHero();
         List<Enemy> enemies = screen.getEnemies();
-        Enemy target = firstAliveEnemy(enemies);
+
+        // Resolve target: prefer targetIndex if alive, otherwise fall back to first alive.
+        Enemy target = resolveTarget(enemies);
 
         // Ensure the hero always has a strategy when the player presses SKILL.
         // TODO: AT-013 — swap strategy via Skill submenu selection.
@@ -115,16 +132,22 @@ public class PlayerTurnState implements BattleState {
         screen.setState(new AnimationState(screen, nextState));
     }
 
-    private Enemy firstAliveEnemy(List<Enemy> enemies) {
+    /**
+     * Returns the enemy at {@code targetIndex} if alive, otherwise the first alive enemy.
+     * Returns null if there are no alive enemies.
+     */
+    private Enemy resolveTarget(List<Enemy> enemies) {
+        if (targetIndex >= 0 && targetIndex < enemies.size() && enemies.get(targetIndex).isAlive()) {
+            return enemies.get(targetIndex);
+        }
         for (Enemy e : enemies) {
             if (e.isAlive()) return e;
         }
         return null;
     }
 
-    // ---- Accessors (for UI rendering) ----
+    // ---- Accessors (for UI rendering, AT-011) ----
 
-    public ActionType getSelectedAction() {
-        return selectedAction;
-    }
+    public ActionType getSelectedAction() { return selectedAction; }
+    public int        getTargetIndex()    { return targetIndex; }
 }

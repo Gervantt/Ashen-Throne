@@ -1,43 +1,39 @@
 package com.ashenthrone.battle.state;
 
+import com.ashenthrone.battle.ActionType;
 import com.ashenthrone.core.GameSession;
+import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.screens.BattleScreen;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
  * Terminal state reached when the hero's HP drops to zero.
  *
- * Key bindings (temporary until AT-012 BattleInputAdapter):
- *   R      — retry the current encounter (restart BattleScreen with same enemies)
- *   Escape — return to the main menu and reset the session
+ * Key bindings (translated by BattleInputAdapter, AT-012):
+ *   Enter/Space — retry the current encounter
+ *   Escape/Z    — return to the main menu and reset the session
  *
  * Screen navigation is a placeholder until AT-013 implements the full
  * screen flow through AshenThroneGame.setScreen().
  */
-public class DefeatState implements BattleState {
+public class DefeatState implements BattleState, BattleInputAdapter.ActionListener {
 
     private final BattleScreen screen;
     private boolean eventPublished;
 
     public DefeatState(BattleScreen screen) {
         this.screen = screen;
+        // AT-012: register as the active input listener for this state.
+        screen.getInputAdapter().setListener(this);
     }
 
     // ---- BattleState ----
 
     @Override
     public void handleInput() {
-        // TODO: AT-012 — replace with BattleInputAdapter callbacks
-        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            retryEncounter();
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            returnToMainMenu();
-        }
+        // Input arrives via ActionListener callbacks — no polling needed.
     }
 
     @Override
@@ -53,6 +49,23 @@ public class DefeatState implements BattleState {
         // TODO: AT-011 — render DefeatUI panel (retry / main menu buttons)
         // TODO: AT-015 — full visual layout
     }
+
+    // ---- BattleInputAdapter.ActionListener ----
+
+    /** Enter/Space — retry the encounter. */
+    @Override
+    public void onConfirm() {
+        retryEncounter();
+    }
+
+    /** Escape/Z — exit to main menu. */
+    @Override
+    public void onCancel() {
+        returnToMainMenu();
+    }
+
+    @Override public void onActionSelected(ActionType type) {}
+    @Override public void onTargetSelected(int enemyIndex)  {}
 
     // ---- Navigation ----
 
