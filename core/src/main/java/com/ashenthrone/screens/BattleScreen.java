@@ -7,6 +7,7 @@ import com.ashenthrone.battle.state.PlayerTurnState;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.core.AshenThroneGame;
+import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.EventType;
 import com.ashenthrone.observer.listeners.AudioListener;
@@ -31,6 +32,10 @@ import java.util.List;
  * BattleScreen is a pure coordinator — it routes input and rendering to the
  * current state, and routes commands and queries to the engine.
  *
+ * Input is translated from raw libGDX events to game-level callbacks by
+ * {@link BattleInputAdapter} (AT-012). States register as listeners via
+ * {@link BattleInputAdapter#setListener} in their constructors.
+ *
  * Construction:
  *   new BattleScreen(AshenThroneGame.getInstance(), hero, enemies)
  * Transition in:
@@ -44,12 +49,11 @@ public class BattleScreen implements Screen {
     private BattleState currentState;
     private SpriteBatch batch;
 
-    // AT-009: observer listeners — kept as fields so other systems can query their state.
-    private final BattleLogListener battleLog      = new BattleLogListener();
-    private final VictoryChecker    victoryChecker = new VictoryChecker();
+    // AT-012: single adapter instance — registered with Gdx.input for the lifetime of this screen.
+    private final BattleInputAdapter inputAdapter = new BattleInputAdapter();
 
     // AT-009: observer listeners — kept as fields so other systems can query their state.
-    private final BattleLogListener battleLog     = new BattleLogListener();
+    private final BattleLogListener battleLog      = new BattleLogListener();
     private final VictoryChecker    victoryChecker = new VictoryChecker();
 
     public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
@@ -90,6 +94,10 @@ public class BattleScreen implements Screen {
         em.subscribe(EventType.CHARACTER_DIED, victoryChecker);
         em.subscribe(EventType.BATTLE_END,     victoryChecker);
 
+        // AT-012: register the adapter once; states swap the listener via setListener().
+        inputAdapter.setEnemyCount(engine.getEnemies().size());
+        Gdx.input.setInputProcessor(inputAdapter);
+
         currentState = new PlayerTurnState(this);
     }
 
@@ -121,6 +129,7 @@ public class BattleScreen implements Screen {
     @Override
     public void dispose() {
         batch.dispose();
+        Gdx.input.setInputProcessor(null);
     }
 
     // ---- State machine ----
@@ -159,4 +168,7 @@ public class BattleScreen implements Screen {
     // AT-009: expose observers so UI (AT-011) and screen flow (AT-013) can read them.
     public BattleLogListener getBattleLog()      { return battleLog; }
     public VictoryChecker    getVictoryChecker() { return victoryChecker; }
+
+    // AT-012: expose adapter so states can register as listener in their constructor.
+    public BattleInputAdapter getInputAdapter() { return inputAdapter; }
 }

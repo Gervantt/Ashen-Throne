@@ -1,11 +1,11 @@
 package com.ashenthrone.battle.state;
 
+import com.ashenthrone.battle.ActionType;
 import com.ashenthrone.core.GameSession;
+import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.screens.BattleScreen;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
@@ -14,11 +14,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
  * On entry (first update() call), grants gold proportional to the current
  * encounter index and advances the encounter counter in GameSession.
  *
- * The player presses Enter/Space to proceed to the next encounter.
+ * The player presses Enter/Space (translated by BattleInputAdapter, AT-012)
+ * to proceed to the next encounter.
  * Screen navigation is a placeholder until AT-013 implements the full
  * screen flow through AshenThroneGame.setScreen().
  */
-public class VictoryState implements BattleState {
+public class VictoryState implements BattleState, BattleInputAdapter.ActionListener {
 
     /** Base gold reward; multiplied by (encounterIndex + 1). */
     private static final int BASE_GOLD_REWARD = 10;
@@ -29,17 +30,15 @@ public class VictoryState implements BattleState {
     public VictoryState(BattleScreen screen) {
         this.screen = screen;
         this.rewardGranted = false;
+        // AT-012: register as the active input listener for this state.
+        screen.getInputAdapter().setListener(this);
     }
 
     // ---- BattleState ----
 
     @Override
     public void handleInput() {
-        // TODO: AT-012 — replace with BattleInputAdapter.onConfirm()
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)
-                || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            proceedToNextEncounter();
-        }
+        // Input arrives via ActionListener callbacks — no polling needed.
     }
 
     @Override
@@ -58,6 +57,17 @@ public class VictoryState implements BattleState {
         // TODO: AT-011 — render VictoryUI panel (gold earned, proceed button)
         // TODO: AT-015 — full visual layout
     }
+
+    // ---- BattleInputAdapter.ActionListener ----
+
+    @Override
+    public void onConfirm() {
+        proceedToNextEncounter();
+    }
+
+    @Override public void onActionSelected(ActionType type) {}
+    @Override public void onTargetSelected(int enemyIndex)  {}
+    @Override public void onCancel()                        {}
 
     // ---- Navigation ----
 
