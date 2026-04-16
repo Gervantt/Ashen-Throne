@@ -13,6 +13,11 @@ import com.ashenthrone.observer.listeners.AudioListener;
 import com.ashenthrone.observer.listeners.BattleLogListener;
 import com.ashenthrone.observer.listeners.HealthBarListener;
 import com.ashenthrone.observer.listeners.VictoryChecker;
+import com.ashenthrone.ui.ActionMenu;
+import com.ashenthrone.ui.BattleLog;
+import com.ashenthrone.ui.HealthBar;
+import com.ashenthrone.ui.Panel;
+import com.ashenthrone.ui.UIComponent;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -31,6 +36,10 @@ import java.util.List;
  * BattleScreen is a pure coordinator — it routes input and rendering to the
  * current state, and routes commands and queries to the engine.
  *
+ * The battle HUD (AT-011) is a Composite UIComponent tree owned by this screen.
+ * It is rendered every frame after the current state's render call, so it always
+ * appears on top of any state-specific drawing.
+ *
  * Construction:
  *   new BattleScreen(AshenThroneGame.getInstance(), hero, enemies)
  * Transition in:
@@ -48,9 +57,9 @@ public class BattleScreen implements Screen {
     private final BattleLogListener battleLog      = new BattleLogListener();
     private final VictoryChecker    victoryChecker = new VictoryChecker();
 
-    // AT-009: observer listeners — kept as fields so other systems can query their state.
-    private final BattleLogListener battleLog     = new BattleLogListener();
-    private final VictoryChecker    victoryChecker = new VictoryChecker();
+    // AT-011: root HUD panel and direct reference to the action menu for state access.
+    private Panel      battleHud;
+    private ActionMenu actionMenu;
 
     public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
         if (game == null)    throw new IllegalArgumentException("game must not be null");
@@ -90,12 +99,45 @@ public class BattleScreen implements Screen {
         em.subscribe(EventType.CHARACTER_DIED, victoryChecker);
         em.subscribe(EventType.BATTLE_END,     victoryChecker);
 
+        // AT-011: build the Composite HUD tree.
+        buildHud();
+
         currentState = new PlayerTurnState(this);
     }
 
     /**
+     * Constructs the battle HUD as a Composite UIComponent tree (AT-011).
+     *
+     * Root (transparent Panel 1280×720)
+     *   ├── HealthBar — hero               (top-left)
+     *   ├── HealthBar — enemy 0..n         (top-right, spaced horizontally)
+     *   ├── BattleLog                      (bottom-left)
+     *   └── ActionMenu (4 ActionButtons)   (bottom-center)
+     */
+    private void buildHud() {
+        battleHud = new Panel(0, 0, 1280, 720);
+
+        // Hero health bar
+        battleHud.addChild(new HealthBar(engine.getHero(), 50, 650, 200, 20));
+
+        // Enemy health bars — spaced horizontally from the right side
+        List<Enemy> enemies = engine.getEnemies();
+        for (int i = 0; i < enemies.size(); i++) {
+            battleHud.addChild(new HealthBar(enemies.get(i), 850 + i * 150f, 650, 140, 20));
+        }
+
+        // Battle log (bottom-left)
+        battleHud.addChild(new BattleLog(battleLog, 20, 20, 360, 110));
+
+        // Action menu (bottom-center)
+        actionMenu = new ActionMenu(440, 10, 400, 80);
+        battleHud.addChild(actionMenu);
+    }
+
+    /**
      * Called every frame by libGDX.
-     * Clears the screen, then lets the current state handle input, update, and render.
+     * Clears the screen, then lets the current state handle input, update, and render,
+     * followed by the HUD composite tree which always renders on top.
      */
     @Override
     public void render(float delta) {
@@ -106,6 +148,9 @@ public class BattleScreen implements Screen {
         currentState.handleInput();
         currentState.update(delta);
         currentState.render(batch);
+        // AT-011: render the HUD tree after state content so it appears on top.
+        battleHud.update(delta);
+        battleHud.render(batch);
         batch.end();
     }
 
@@ -121,6 +166,8 @@ public class BattleScreen implements Screen {
     @Override
     public void dispose() {
         batch.dispose();
+        battleHud.dispose();
+        UIComponent.disposeShared();
     }
 
     // ---- State machine ----
@@ -159,4 +206,7 @@ public class BattleScreen implements Screen {
     // AT-009: expose observers so UI (AT-011) and screen flow (AT-013) can read them.
     public BattleLogListener getBattleLog()      { return battleLog; }
     public VictoryChecker    getVictoryChecker() { return victoryChecker; }
+
+    // AT-011: expose action menu so PlayerTurnState can update the selected button.
+    public ActionMenu getActionMenu() { return actionMenu; }
 }

@@ -70,8 +70,8 @@ public class PlayerTurnState implements BattleState {
 
     @Override
     public void render(SpriteBatch batch) {
-        // TODO: AT-011 — delegate to ActionMenu UIComponent
-        // TODO: AT-015 — styled action buttons, highlight selected action
+        // AT-011: keep the ActionMenu highlight in sync with the current selection.
+        screen.getActionMenu().setSelected(selectedAction);
         // TODO: AT-015 — show "(Z) Undo" button when screen.canUndo() is true
     }
 
