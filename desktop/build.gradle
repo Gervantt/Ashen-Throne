@@ -12,6 +12,17 @@ dependencies {
     implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 }
 
+task run(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the desktop application'
+    mainClass.set('com.ashenthrone.desktop.DesktopLauncher')
+    classpath = sourceSets.main.runtimeClasspath
+    workingDir = project(':core').file('assets')
+    if (System.getProperty('os.name').toLowerCase().contains('mac')) {
+        jvmArgs '-XstartOnFirstThread'
+    }
+}
+
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
