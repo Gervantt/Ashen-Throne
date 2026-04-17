@@ -6,6 +6,7 @@ import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.screens.BattleScreen;
+import com.ashenthrone.screens.VictoryScreen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
@@ -71,7 +72,6 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
     // ---- Navigation ----
 
     private void proceedToNextEncounter() {
-        // TODO: AT-013 — navigate to VictoryScreen or next BattleScreen
-        // via AshenThroneGame.getInstance().setScreen(...)
+        screen.getGame().setScreen(new VictoryScreen(screen.getGame(), screen.getHero()));
     }
 }

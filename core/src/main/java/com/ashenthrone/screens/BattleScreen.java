@@ -41,6 +41,9 @@ import java.util.List;
  * {@link BattleInputAdapter} (AT-012). States register as listeners via
  * {@link BattleInputAdapter#setListener} in their constructors.
  *
+ * The battle HUD (AT-011) is a Composite UIComponent tree rendered every frame
+ * after the current state so it always appears on top.
+ *
  * Construction:
  *   new BattleScreen(AshenThroneGame.getInstance(), hero, enemies)
  * Transition in:
@@ -60,6 +63,10 @@ public class BattleScreen implements Screen {
     // AT-009: observer listeners — kept as fields so other systems can query their state.
     private final BattleLogListener battleLog      = new BattleLogListener();
     private final VictoryChecker    victoryChecker = new VictoryChecker();
+
+    // AT-011: root HUD panel and direct reference to the action menu for state access.
+    private Panel      battleHud;
+    private ActionMenu actionMenu;
 
     public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
         if (game == null)    throw new IllegalArgumentException("game must not be null");
@@ -99,6 +106,9 @@ public class BattleScreen implements Screen {
         em.subscribe(EventType.CHARACTER_DIED, victoryChecker);
         em.subscribe(EventType.BATTLE_END,     victoryChecker);
 
+        // AT-011: build the Composite HUD tree.
+        buildHud();
+
         // AT-012: register the adapter once; states swap the listener via setListener().
         inputAdapter.setEnemyCount(engine.getEnemies().size());
         Gdx.input.setInputProcessor(inputAdapter);
@@ -118,19 +128,15 @@ public class BattleScreen implements Screen {
     private void buildHud() {
         battleHud = new Panel(0, 0, 1280, 720);
 
-        // Hero health bar
         battleHud.addChild(new HealthBar(engine.getHero(), 50, 650, 200, 20));
 
-        // Enemy health bars — spaced horizontally from the right side
         List<Enemy> enemies = engine.getEnemies();
         for (int i = 0; i < enemies.size(); i++) {
             battleHud.addChild(new HealthBar(enemies.get(i), 850 + i * 150f, 650, 140, 20));
         }
 
-        // Battle log (bottom-left)
         battleHud.addChild(new BattleLog(battleLog, 20, 20, 360, 110));
 
-        // Action menu (bottom-center)
         actionMenu = new ActionMenu(440, 10, 400, 80);
         battleHud.addChild(actionMenu);
     }
@@ -167,6 +173,8 @@ public class BattleScreen implements Screen {
     @Override
     public void dispose() {
         batch.dispose();
+        battleHud.dispose();
+        UIComponent.disposeShared();
         Gdx.input.setInputProcessor(null);
     }
 
@@ -206,6 +214,9 @@ public class BattleScreen implements Screen {
     // AT-009: expose observers so UI (AT-011) and screen flow (AT-013) can read them.
     public BattleLogListener getBattleLog()      { return battleLog; }
     public VictoryChecker    getVictoryChecker() { return victoryChecker; }
+
+    // AT-011: expose action menu so PlayerTurnState can update the selected button.
+    public ActionMenu getActionMenu() { return actionMenu; }
 
     // AT-012: expose adapter so states can register as listener in their constructor.
     public BattleInputAdapter getInputAdapter() { return inputAdapter; }

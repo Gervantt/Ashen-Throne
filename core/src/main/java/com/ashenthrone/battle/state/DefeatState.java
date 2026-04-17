@@ -6,6 +6,8 @@ import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.screens.BattleScreen;
+import com.ashenthrone.screens.DefeatScreen;
+import com.ashenthrone.screens.MainMenuScreen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
@@ -15,8 +17,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
  *   Enter/Space — retry the current encounter
  *   Escape/Z    — return to the main menu and reset the session
  *
- * Screen navigation is a placeholder until AT-013 implements the full
- * screen flow through AshenThroneGame.setScreen().
+ * Both actions now navigate through AshenThroneGame.setScreen() (AT-013).
  */
 public class DefeatState implements BattleState, BattleInputAdapter.ActionListener {
 
@@ -70,13 +71,11 @@ public class DefeatState implements BattleState, BattleInputAdapter.ActionListen
     // ---- Navigation ----
 
     private void retryEncounter() {
-        // TODO: AT-013 — re-create BattleScreen for the same encounter
-        // via AshenThroneGame.getInstance().setScreen(...)
+        screen.getGame().setScreen(new DefeatScreen(screen.getGame(), screen.getHero()));
     }
 
     private void returnToMainMenu() {
         GameSession.getInstance().reset();
-        // TODO: AT-013 — navigate to MainMenuScreen
-        // via AshenThroneGame.getInstance().setScreen(new MainMenuScreen(...))
+        screen.getGame().setScreen(new MainMenuScreen(screen.getGame()));
     }
 }
