@@ -6,7 +6,6 @@ import com.ashenthrone.core.GameSession;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -23,13 +22,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
  * Gold was already credited by VictoryState.update() before this screen
  * was created, so GameSession.getGold() reflects the post-battle total.
  */
-public class VictoryScreen implements Screen {
+public class VictoryScreen extends BaseScreen {
 
     private static final int SCREEN_W = 1280;
     private static final int SCREEN_H = 720;
 
-    private final AshenThroneGame game;
-    private final Hero            hero;
+    private final Hero hero;
 
     private SpriteBatch batch;
     private BitmapFont  titleFont;
@@ -37,7 +35,7 @@ public class VictoryScreen implements Screen {
     private GlyphLayout layout;
 
     public VictoryScreen(AshenThroneGame game, Hero hero) {
-        this.game = game;
+        super(game);
         this.hero = hero;
     }
 

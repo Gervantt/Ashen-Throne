@@ -7,7 +7,6 @@ import com.ashenthrone.core.GameSession;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -23,12 +22,11 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
  * On confirm, creates a fresh Hero, spawns encounter-0 enemies, and
  * transitions to BattleScreen via AshenThroneGame.setScreen().
  */
-public class MainMenuScreen implements Screen {
+public class MainMenuScreen extends BaseScreen {
 
     private static final int SCREEN_W = 1280;
     private static final int SCREEN_H = 720;
 
-    private final AshenThroneGame game;
     private SpriteBatch  batch;
     private BitmapFont   titleFont;
     private BitmapFont   promptFont;
@@ -36,7 +34,7 @@ public class MainMenuScreen implements Screen {
     private GlyphLayout  layout;
 
     public MainMenuScreen(AshenThroneGame game) {
-        this.game = game;
+        super(game);
     }
 
     @Override

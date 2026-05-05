@@ -20,7 +20,6 @@ import com.ashenthrone.ui.HealthBar;
 import com.ashenthrone.ui.Panel;
 import com.ashenthrone.ui.UIComponent;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
@@ -49,9 +48,8 @@ import java.util.List;
  * Transition in:
  *   AshenThroneGame.getInstance().setScreen(battleScreen)   // AT-013
  */
-public class BattleScreen implements Screen {
+public class BattleScreen extends BaseScreen {
 
-    private final AshenThroneGame game;
     private final BattleEngine    engine;
 
     private BattleState currentState;
@@ -69,10 +67,10 @@ public class BattleScreen implements Screen {
     private ActionMenu actionMenu;
 
     public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
+        super(game);
         if (game == null)    throw new IllegalArgumentException("game must not be null");
         if (hero == null)    throw new IllegalArgumentException("hero must not be null");
         if (enemies == null) throw new IllegalArgumentException("enemies must not be null");
-        this.game   = game;
         this.engine = new BattleEngine();
         engine.startBattle(hero, enemies); // AT-010: engine owns hero + enemies
     }

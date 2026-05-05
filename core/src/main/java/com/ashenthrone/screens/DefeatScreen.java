@@ -6,7 +6,6 @@ import com.ashenthrone.core.GameSession;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -20,13 +19,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
  *   ENTER/SPACE — retry the same encounter (hero HP restored to max)
  *   ESCAPE      — return to the main menu and reset the session
  */
-public class DefeatScreen implements Screen {
+public class DefeatScreen extends BaseScreen {
 
     private static final int SCREEN_W = 1280;
     private static final int SCREEN_H = 720;
 
-    private final AshenThroneGame game;
-    private final Hero            hero;
+    private final Hero hero;
 
     private SpriteBatch batch;
     private BitmapFont  titleFont;
@@ -34,7 +32,7 @@ public class DefeatScreen implements Screen {
     private GlyphLayout layout;
 
     public DefeatScreen(AshenThroneGame game, Hero hero) {
-        this.game = game;
+        super(game);
         this.hero = hero;
     }
 
