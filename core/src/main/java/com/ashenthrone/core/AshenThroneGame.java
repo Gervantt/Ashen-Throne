@@ -3,6 +3,7 @@ package com.ashenthrone.core;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.prototype.EnemyRegistry;
 import com.ashenthrone.screens.MainMenuScreen;
+import com.ashenthrone.screens.SettingsScreen;
 import com.badlogic.gdx.Game;
 
 import java.util.List;
@@ -36,6 +37,7 @@ public class AshenThroneGame extends Game {
     @Override
     public void create() {
         GameSession.getInstance().reset();
+        SettingsScreen.applySavedDisplayMode(); // AT-017
         setScreen(new MainMenuScreen(this));
     }
 

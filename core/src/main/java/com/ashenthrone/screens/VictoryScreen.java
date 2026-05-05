@@ -11,6 +11,8 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * Shown after the player defeats all enemies in an encounter (AT-013).
@@ -33,6 +35,7 @@ public class VictoryScreen extends BaseScreen {
     private BitmapFont  titleFont;
     private BitmapFont  infoFont;
     private GlyphLayout layout;
+    private Viewport    viewport;
 
     public VictoryScreen(AshenThroneGame game, Hero hero) {
         super(game);
@@ -45,6 +48,8 @@ public class VictoryScreen extends BaseScreen {
         titleFont = new BitmapFont();
         infoFont  = new BitmapFont();
         layout    = new GlyphLayout();
+        viewport  = new FitViewport(SCREEN_W, SCREEN_H);
+        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
         titleFont.getData().setScale(3f);
         infoFont.getData().setScale(1.4f);
@@ -66,6 +71,8 @@ public class VictoryScreen extends BaseScreen {
         Gdx.gl.glClearColor(0.05f, 0.1f, 0.05f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        viewport.apply();
+        batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
         titleFont.setColor(new Color(0.3f, 0.9f, 0.3f, 1f));
@@ -90,7 +97,9 @@ public class VictoryScreen extends BaseScreen {
         batch.end();
     }
 
-    @Override public void resize(int width, int height) {}
+    @Override public void resize(int width, int height) {
+        if (viewport != null) viewport.update(width, height, true);
+    }
     @Override public void pause()  {}
     @Override public void resume() {}
     @Override public void hide()   {}

@@ -26,6 +26,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.List;
 
@@ -66,6 +68,7 @@ public class BattleScreen extends BaseScreen {
 
     private BattleState currentState;
     private SpriteBatch batch;
+    private Viewport    viewport;
 
     // AT-012: single adapter instance — registered with Gdx.input for the lifetime of this screen.
     private final BattleInputAdapter inputAdapter = new BattleInputAdapter();
@@ -91,7 +94,9 @@ public class BattleScreen extends BaseScreen {
 
     @Override
     public void show() {
-        batch = new SpriteBatch();
+        batch    = new SpriteBatch();
+        viewport = new FitViewport(SCREEN_W, SCREEN_H);
+        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
         // AT-009: reset and re-register observers for this battle.
         EventManager em = EventManager.getInstance();
@@ -208,6 +213,8 @@ public class BattleScreen extends BaseScreen {
         Gdx.gl.glClearColor(0.05f, 0.05f, 0.1f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        viewport.apply();
+        batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
         currentState.handleInput();
         currentState.update(delta);
@@ -220,7 +227,7 @@ public class BattleScreen extends BaseScreen {
 
     @Override
     public void resize(int width, int height) {
-        // TODO: AT-015 — update viewport/camera on resize
+        if (viewport != null) viewport.update(width, height, true);
     }
 
     @Override public void pause()  {}

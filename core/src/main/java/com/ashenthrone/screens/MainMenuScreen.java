@@ -13,6 +13,9 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * Main menu (AT-016).
@@ -43,6 +46,8 @@ public class MainMenuScreen extends BaseScreen {
     private BitmapFont   buttonFont;
     private Texture      pixel;
     private GlyphLayout  layout;
+    private Viewport     viewport;
+    private final Vector3 touchTmp = new Vector3();
 
     private int hovered = 0;
 
@@ -56,6 +61,8 @@ public class MainMenuScreen extends BaseScreen {
         titleFont  = new BitmapFont();
         buttonFont = new BitmapFont();
         layout     = new GlyphLayout();
+        viewport   = new FitViewport(SCREEN_W, SCREEN_H);
+        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
         titleFont.getData().setScale(4f);
         buttonFont.getData().setScale(1.6f);
@@ -115,6 +122,8 @@ public class MainMenuScreen extends BaseScreen {
         Gdx.gl.glClearColor(0.06f, 0.04f, 0.08f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        viewport.apply();
+        batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
         // TODO: AT-021 — replace with main-menu background Texture.
@@ -158,20 +167,28 @@ public class MainMenuScreen extends BaseScreen {
                 y + (BTN_H + layout.height) / 2f);
     }
 
-    /** Returns the button index under screen-space (libGDX) coordinates, or -1. */
+    /** Returns the button index under window-space coordinates, or -1. */
     private int buttonAt(int screenX, int screenY) {
-        int worldY = SCREEN_H - screenY; // libGDX touch Y is from top.
+        touchTmp.set(screenX, screenY, 0);
+        viewport.unproject(touchTmp); // window pixels → virtual 1280x720 coords.
+        float vx = touchTmp.x;
+        float vy = touchTmp.y;
         float totalH = LABELS.length * BTN_H + (LABELS.length - 1) * BTN_GAP;
         float firstY = (SCREEN_H + totalH) / 2f - BTN_H;
         float bx = (SCREEN_W - BTN_W) / 2f;
         for (int i = 0; i < LABELS.length; i++) {
             float by = firstY - i * (BTN_H + BTN_GAP);
-            if (screenX >= bx && screenX <= bx + BTN_W
-                    && worldY >= by && worldY <= by + BTN_H) {
+            if (vx >= bx && vx <= bx + BTN_W
+                    && vy >= by && vy <= by + BTN_H) {
                 return i;
             }
         }
         return -1;
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        if (viewport != null) viewport.update(width, height, true);
     }
 
     private void activate(int index) {
