@@ -15,10 +15,14 @@ import com.ashenthrone.observer.listeners.BattleLogListener;
 import com.ashenthrone.observer.listeners.HealthBarListener;
 import com.ashenthrone.observer.listeners.VictoryChecker;
 import com.ashenthrone.ui.ActionMenu;
+import com.ashenthrone.ui.BattleBackground;
 import com.ashenthrone.ui.BattleLog;
+import com.ashenthrone.ui.CharacterSprite;
 import com.ashenthrone.ui.HealthBar;
 import com.ashenthrone.ui.Panel;
+import com.ashenthrone.ui.TurnIndicator;
 import com.ashenthrone.ui.UIComponent;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -49,6 +53,14 @@ import java.util.List;
  *   AshenThroneGame.getInstance().setScreen(battleScreen)   // AT-013
  */
 public class BattleScreen extends BaseScreen {
+
+    // AT-015: layout constants for the static battle scene.
+    private static final int   SCREEN_W = 1280;
+    private static final int   SCREEN_H = 720;
+    private static final float SPRITE_W = 120f;
+    private static final float SPRITE_H = 160f;
+    private static final float SPRITE_Y = 200f;
+    private static final float HP_BAR_H = 16f;
 
     private final BattleEngine    engine;
 
@@ -115,28 +127,75 @@ public class BattleScreen extends BaseScreen {
     }
 
     /**
-     * Constructs the battle HUD as a Composite UIComponent tree (AT-011).
+     * Constructs the battle HUD as a Composite UIComponent tree (AT-011, AT-015).
      *
-     * Root (transparent Panel 1280×720)
-     *   ├── HealthBar — hero               (top-left)
-     *   ├── HealthBar — enemy 0..n         (top-right, spaced horizontally)
-     *   ├── BattleLog                      (bottom-left)
-     *   └── ActionMenu (4 ActionButtons)   (bottom-center)
+     * Layout (1280×720):
+     *   - Background (fullscreen, behind everything)
+     *   - Hero sprite + HealthBar at left, ~20% from edge
+     *   - Enemy sprites + HealthBars at right, evenly spaced
+     *   - Turn indicator centered at the top
+     *   - Battle log at bottom-left
+     *   - Action menu at bottom-center
+     *
+     * Sprites are placeholder rectangles until AT-018/019/021 supply textures.
      */
     private void buildHud() {
-        battleHud = new Panel(0, 0, 1280, 720);
+        battleHud = new Panel(0, 0, SCREEN_W, SCREEN_H);
 
-        battleHud.addChild(new HealthBar(engine.getHero(), 50, 650, 200, 20));
+        battleHud.addChild(new BattleBackground(0, 0, SCREEN_W, SCREEN_H));
 
+        // Hero — left, 20% from edge.
+        float heroSpriteX = SCREEN_W * 0.20f - SPRITE_W / 2f;
+        battleHud.addChild(new CharacterSprite(engine.getHero(),
+                new Color(0.35f, 0.55f, 0.85f, 1f),
+                heroSpriteX, SPRITE_Y, SPRITE_W, SPRITE_H));
+        battleHud.addChild(new HealthBar(engine.getHero(),
+                heroSpriteX - 20f, SPRITE_Y + SPRITE_H + 20f,
+                SPRITE_W + 40f, HP_BAR_H));
+
+        // Enemies — right half, evenly spaced.
         List<Enemy> enemies = engine.getEnemies();
-        for (int i = 0; i < enemies.size(); i++) {
-            battleHud.addChild(new HealthBar(enemies.get(i), 850 + i * 150f, 650, 140, 20));
+        int n = enemies.size();
+        float enemyAreaLeft  = SCREEN_W * 0.55f;
+        float enemyAreaRight = SCREEN_W - 80f;
+        float enemyAreaW     = enemyAreaRight - enemyAreaLeft;
+        float slotW = n > 0 ? enemyAreaW / n : 0f;
+        for (int i = 0; i < n; i++) {
+            float slotCenter = enemyAreaLeft + slotW * (i + 0.5f);
+            float ex = slotCenter - SPRITE_W / 2f;
+            battleHud.addChild(new CharacterSprite(enemies.get(i),
+                    new Color(0.75f, 0.30f, 0.30f, 1f),
+                    ex, SPRITE_Y, SPRITE_W, SPRITE_H));
+            battleHud.addChild(new HealthBar(enemies.get(i),
+                    ex - 10f, SPRITE_Y + SPRITE_H + 20f,
+                    SPRITE_W + 20f, HP_BAR_H));
         }
 
+        // Turn indicator at top center.
+        float tiW = 280f, tiH = 36f;
+        battleHud.addChild(new TurnIndicator(this::turnLabel,
+                (SCREEN_W - tiW) / 2f, SCREEN_H - tiH - 16f, tiW, tiH));
+
+        // Battle log — bottom-left.
         battleHud.addChild(new BattleLog(battleLog, 20, 20, 360, 110));
 
+        // Action menu — bottom-center.
         actionMenu = new ActionMenu(440, 10, 400, 80);
         battleHud.addChild(actionMenu);
+    }
+
+    /** Maps the current state class to a human-readable turn label. */
+    private String turnLabel() {
+        if (currentState == null) return "";
+        String name = currentState.getClass().getSimpleName();
+        return switch (name) {
+            case "PlayerTurnState" -> "YOUR TURN";
+            case "EnemyTurnState"  -> "ENEMY TURN";
+            case "AnimationState"  -> "...";
+            case "VictoryState"    -> "VICTORY";
+            case "DefeatState"     -> "DEFEAT";
+            default -> name;
+        };
     }
 
     /**
