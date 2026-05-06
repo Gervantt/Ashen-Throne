@@ -2,7 +2,9 @@ package com.ashenthrone.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Singleton that holds the state of the current run.
@@ -17,6 +19,14 @@ public class GameSession {
     private int gold;
     private int currentEncounterIndex;
     private final List<Object> inventory; // TODO: change to Item type
+
+    // AT-019: realm progression. completedRealms holds keys ("abyss", "forest",
+    // "throne") for realms the player has fully cleared. currentRealm is the
+    // realm key the player is presently inside; currentWaveInRealm is its
+    // 0-based wave index. Both are null/0 outside an active realm run.
+    private final Set<String> completedRealms = new HashSet<>();
+    private String currentRealm;
+    private int currentWaveInRealm;
 
     private GameSession() {
         inventory = new ArrayList<>();
@@ -35,6 +45,9 @@ public class GameSession {
         gold = 0;
         currentEncounterIndex = 0;
         inventory.clear();
+        completedRealms.clear();
+        currentRealm = null;
+        currentWaveInRealm = 0;
     }
 
     // ---- Getters & Setters ----
@@ -53,4 +66,20 @@ public class GameSession {
     public void advanceEncounter() { this.currentEncounterIndex++; }
 
     public List<Object> getInventory() { return Collections.unmodifiableList(inventory); }
+
+    // ---- AT-019: realm progression ----
+
+    public Set<String> getCompletedRealms() { return Collections.unmodifiableSet(completedRealms); }
+    public boolean hasCompletedRealm(String realmKey) { return completedRealms.contains(realmKey); }
+    public void markRealmCompleted(String realmKey) {
+        if (realmKey == null) throw new IllegalArgumentException("realmKey must not be null");
+        completedRealms.add(realmKey);
+    }
+
+    public String getCurrentRealm() { return currentRealm; }
+    public void setCurrentRealm(String realmKey) { this.currentRealm = realmKey; }
+
+    public int getCurrentWaveInRealm() { return currentWaveInRealm; }
+    public void setCurrentWaveInRealm(int wave) { this.currentWaveInRealm = wave; }
+    public void advanceWave() { this.currentWaveInRealm++; }
 }
