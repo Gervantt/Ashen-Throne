@@ -48,6 +48,16 @@ public abstract class CharacterDecorator extends AbstractCharacter {
     @Override
     public boolean isDefending() { return wrapped.isDefending(); }
 
+    @Override
+    public com.ashenthrone.strategy.AttackStrategy getCurrentStrategy() {
+        return wrapped.getCurrentStrategy();
+    }
+
+    @Override
+    public void setCurrentStrategy(com.ashenthrone.strategy.AttackStrategy strategy) {
+        wrapped.setCurrentStrategy(strategy);
+    }
+
     // ---- Delegation — combat helpers ----
 
     @Override

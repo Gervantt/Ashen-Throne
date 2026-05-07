@@ -1,8 +1,8 @@
 package com.ashenthrone.battle;
 
 import com.ashenthrone.battle.command.BattleCommand;
+import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
-import com.ashenthrone.characters.Hero;
 import com.ashenthrone.strategy.AttackStrategy;
 import com.ashenthrone.strategy.MagicAttack;
 import com.ashenthrone.strategy.PhysicalAttack;
@@ -37,7 +37,7 @@ public class BattleEngine {
     private final DeathChecker           deathChecker           = new DeathChecker();
 
     // ---- Battle state ----
-    private Hero         hero;
+    private AbstractCharacter hero;
     private List<Enemy>  enemies;
 
     // ---- Command history (moved from BattleScreen) ----
@@ -49,7 +49,7 @@ public class BattleEngine {
      * Initialises battle state. Must be called before any other method.
      * Safe to call again to reset for a retry (replaces previous state).
      */
-    public void startBattle(Hero hero, List<Enemy> enemies) {
+    public void startBattle(AbstractCharacter hero, List<Enemy> enemies) {
         if (hero == null)    throw new IllegalArgumentException("hero must not be null");
         if (enemies == null) throw new IllegalArgumentException("enemies must not be null");
         this.hero    = hero;
@@ -141,7 +141,7 @@ public class BattleEngine {
 
     // ---- Accessors ----
 
-    public Hero getHero() {
+    public AbstractCharacter getHero() {
         requireStarted();
         return hero;
     }

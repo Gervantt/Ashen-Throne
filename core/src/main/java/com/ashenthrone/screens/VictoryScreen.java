@@ -1,6 +1,6 @@
 package com.ashenthrone.screens;
 
-import com.ashenthrone.characters.Hero;
+import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.core.AshenThroneGame;
 import com.ashenthrone.core.GameSession;
 import com.badlogic.gdx.Gdx;
@@ -29,7 +29,7 @@ public class VictoryScreen extends BaseScreen {
     private static final int SCREEN_W = 1280;
     private static final int SCREEN_H = 720;
 
-    private final Hero hero;
+    private final AbstractCharacter hero;
 
     private SpriteBatch batch;
     private BitmapFont  titleFont;
@@ -37,7 +37,7 @@ public class VictoryScreen extends BaseScreen {
     private GlyphLayout layout;
     private Viewport    viewport;
 
-    public VictoryScreen(AshenThroneGame game, Hero hero) {
+    public VictoryScreen(AshenThroneGame game, AbstractCharacter hero) {
         super(game);
         this.hero = hero;
     }
