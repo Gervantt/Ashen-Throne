@@ -1,5 +1,6 @@
 package com.ashenthrone.strategy;
 
+import com.ashenthrone.audio.AudioManager;
 import com.ashenthrone.characters.AbstractCharacter;
 
 import java.util.List;
@@ -15,6 +16,7 @@ public class HealSelf implements AttackStrategy {
     @Override
     public void execute(AbstractCharacter attacker, List<AbstractCharacter> targets) {
         int amount = (int) Math.round(attacker.getMaxHp() * 0.30);
+        AudioManager.getInstance().playSFX("heal_cast");
         attacker.heal(amount);
     }
 
