@@ -6,8 +6,8 @@ import com.ashenthrone.battle.command.BattleCommand;
 import com.ashenthrone.battle.command.DefendCommand;
 import com.ashenthrone.battle.command.SkillCommand;
 import com.ashenthrone.battle.command.UseItemCommand;
+import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
-import com.ashenthrone.characters.Hero;
 import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.screens.BattleScreen;
 import com.ashenthrone.strategy.PhysicalAttack;
@@ -93,7 +93,7 @@ public class PlayerTurnState implements BattleState, BattleInputAdapter.ActionLi
     // ---- Action execution ----
 
     private void confirmAction() {
-        Hero hero = screen.getHero();
+        AbstractCharacter hero = screen.getHero();
         List<Enemy> enemies = screen.getEnemies();
 
         // Resolve target: prefer targetIndex if alive, otherwise fall back to first alive.

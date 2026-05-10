@@ -1,6 +1,6 @@
 package com.ashenthrone.observer.listeners;
 
-import com.ashenthrone.characters.Hero;
+import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.observer.EventListener;
 import com.ashenthrone.observer.GameEvent;
 
@@ -29,10 +29,13 @@ public class VictoryChecker implements EventListener {
     public void onEvent(GameEvent event) {
         switch (event.getType()) {
             case CHARACTER_DIED -> {
-                if (event.getCharacter() instanceof Hero) {
-                    heroDefeated = true;
-                } else {
+                // Anything that isn't an Enemy is on the hero side — this
+                // includes both bare Hero and any CharacterDecorator chain
+                // that wraps a Hero (AT-020 equipment).
+                if (event.getCharacter() instanceof Enemy) {
                     enemiesDefeated++;
+                } else {
+                    heroDefeated = true;
                 }
             }
             case BATTLE_END -> battleResult = event.getResult();

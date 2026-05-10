@@ -1,7 +1,7 @@
 package com.ashenthrone.battle;
 
+import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
-import com.ashenthrone.characters.Hero;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ public class DeathChecker {
     }
 
     /** True if the hero has no HP remaining. */
-    public boolean isHeroDefeated(Hero hero) {
+    public boolean isHeroDefeated(AbstractCharacter hero) {
         return !hero.isAlive();
     }
 
@@ -31,7 +31,7 @@ public class DeathChecker {
      * True if either terminal condition has been met.
      * Call after every player action and enemy action.
      */
-    public boolean isOver(Hero hero, List<Enemy> enemies) {
+    public boolean isOver(AbstractCharacter hero, List<Enemy> enemies) {
         return areAllEnemiesDefeated(enemies) || isHeroDefeated(hero);
     }
 
@@ -39,7 +39,7 @@ public class DeathChecker {
      * Returns "VICTORY", "DEFEAT", or {@code null} if the battle is still ongoing.
      * Victory takes precedence over defeat.
      */
-    public String getResult(Hero hero, List<Enemy> enemies) {
+    public String getResult(AbstractCharacter hero, List<Enemy> enemies) {
         if (areAllEnemiesDefeated(enemies)) return "VICTORY";
         if (isHeroDefeated(hero))           return "DEFEAT";
         return null;

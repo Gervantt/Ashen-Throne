@@ -4,8 +4,8 @@ import com.ashenthrone.battle.BattleEngine;
 import com.ashenthrone.battle.command.BattleCommand;
 import com.ashenthrone.battle.state.BattleState;
 import com.ashenthrone.battle.state.PlayerTurnState;
+import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
-import com.ashenthrone.characters.Hero;
 import com.ashenthrone.core.AshenThroneGame;
 import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
@@ -81,7 +81,7 @@ public class BattleScreen extends BaseScreen {
     private Panel      battleHud;
     private ActionMenu actionMenu;
 
-    public BattleScreen(AshenThroneGame game, Hero hero, List<Enemy> enemies) {
+    public BattleScreen(AshenThroneGame game, AbstractCharacter hero, List<Enemy> enemies) {
         super(game);
         if (game == null)    throw new IllegalArgumentException("game must not be null");
         if (hero == null)    throw new IllegalArgumentException("hero must not be null");
@@ -268,7 +268,7 @@ public class BattleScreen extends BaseScreen {
 
     // ---- Accessors for states ----
 
-    public Hero        getHero()    { return engine.getHero(); }
+    public AbstractCharacter getHero() { return engine.getHero(); }
     public List<Enemy> getEnemies() { return engine.getEnemies(); }
     public AshenThroneGame getGame()  { return game; }
 

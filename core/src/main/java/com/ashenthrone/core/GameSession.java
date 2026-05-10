@@ -20,6 +20,10 @@ public class GameSession {
     private int currentEncounterIndex;
     private final List<Object> inventory; // TODO: change to Item type
 
+    // AT-020: equipped item identifiers, in order they should be applied as
+    // Decorators around the hero. Item ids are the keys defined in ShopScreen.
+    private final List<String> equippedItems = new ArrayList<>();
+
     // AT-019: realm progression. completedRealms holds keys ("abyss", "forest",
     // "throne") for realms the player has fully cleared. currentRealm is the
     // realm key the player is presently inside; currentWaveInRealm is its
@@ -48,6 +52,7 @@ public class GameSession {
         completedRealms.clear();
         currentRealm = null;
         currentWaveInRealm = 0;
+        equippedItems.clear();
     }
 
     // ---- Getters & Setters ----
@@ -60,6 +65,21 @@ public class GameSession {
         if (amount < 0) throw new IllegalArgumentException("Gold amount must be non-negative, got: " + amount);
         // Cap at Integer.MAX_VALUE to prevent silent overflow.
         this.gold = (int) Math.min((long) gold + amount, Integer.MAX_VALUE);
+    }
+
+    /** AT-020: subtract gold for a purchase. Returns false if insufficient. */
+    public boolean spendGold(int amount) {
+        if (amount < 0) throw new IllegalArgumentException("Gold amount must be non-negative, got: " + amount);
+        if (gold < amount) return false;
+        gold -= amount;
+        return true;
+    }
+
+    public List<String> getEquippedItems() { return Collections.unmodifiableList(equippedItems); }
+    public boolean hasItem(String itemId) { return equippedItems.contains(itemId); }
+    public void equipItem(String itemId) {
+        if (itemId == null) throw new IllegalArgumentException("itemId must not be null");
+        equippedItems.add(itemId);
     }
 
     public int getCurrentEncounterIndex() { return currentEncounterIndex; }
