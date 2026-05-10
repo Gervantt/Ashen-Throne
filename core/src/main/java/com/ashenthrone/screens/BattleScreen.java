@@ -234,6 +234,8 @@ public class BattleScreen extends BaseScreen {
         // AT-011: render the HUD tree after state content so it appears on top.
         battleHud.update(delta);
         battleHud.render(batch);
+        // AT-023: pause menu and other modal overlays render last, on top of HUD.
+        currentState.renderOverlay(batch);
         batch.end();
     }
 
@@ -261,6 +263,11 @@ public class BattleScreen extends BaseScreen {
     /** Transitions to a new state immediately (takes effect next frame). */
     public void setState(BattleState state) {
         this.currentState = state;
+    }
+
+    /** Current state — used by states that suspend themselves (AT-023 pause). */
+    public BattleState getCurrentState() {
+        return currentState;
     }
 
     // ---- Command delegation (AT-007 + AT-010) ----

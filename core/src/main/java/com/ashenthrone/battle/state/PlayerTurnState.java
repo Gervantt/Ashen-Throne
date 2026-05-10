@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
  *   1-4        — select action (Attack / Defend / Skill / Item)
  *   Left/Right — cycle enemy target
  *   Enter/Space — confirm selection
- *   Z / Escape — undo the previous command
+ *   Z          — undo the previous command
+ *   Escape     — open pause menu (AT-023)
  *
  * On confirm, the chosen action is wrapped in a BattleCommand (AT-007),
  * executed via BattleScreen.executeCommand(), then the state transitions to
@@ -82,12 +83,19 @@ public class PlayerTurnState implements BattleState, BattleInputAdapter.ActionLi
         confirmAction();
     }
 
-    /** Z or Escape — undo the most recent command. */
+    /** Z — undo the most recent command. */
     @Override
     public void onCancel() {
         if (screen.canUndo()) {
             screen.undoLastCommand();
         }
+    }
+
+    /** Escape — pause the battle (AT-023). Only acts while we're the active state. */
+    @Override
+    public void onPause() {
+        if (screen.getCurrentState() != this) return;
+        screen.setState(new PauseState(screen, this));
     }
 
     // ---- Action execution ----

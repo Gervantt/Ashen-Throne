@@ -37,4 +37,11 @@ public interface BattleState {
      * TODO: AT-015 — full visual layout and polish.
      */
     void render(SpriteBatch batch);
+
+    /**
+     * Optional second render pass invoked <em>after</em> the battle HUD, so
+     * the state can draw modal/overlay content on top of everything else
+     * (AT-023 pause menu). Defaults to a no-op.
+     */
+    default void renderOverlay(SpriteBatch batch) {}
 }
