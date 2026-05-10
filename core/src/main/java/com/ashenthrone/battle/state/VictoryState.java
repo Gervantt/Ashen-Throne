@@ -6,19 +6,23 @@ import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.screens.BattleScreen;
+import com.ashenthrone.screens.EndGameScreen;
+import com.ashenthrone.screens.RealmSelectScreen;
 import com.ashenthrone.screens.VictoryScreen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
- * Terminal state reached when all enemies have been defeated.
+ * Terminal state reached when all enemies in a wave have been defeated.
  *
- * On entry (first update() call), grants gold proportional to the current
- * encounter index and advances the encounter counter in GameSession.
+ * <p>On entry: grants a per-encounter gold reward and publishes
+ * {@code BATTLE_END:VICTORY}.
  *
- * The player presses Enter/Space (translated by BattleInputAdapter, AT-012)
- * to proceed to the next encounter.
- * Screen navigation is a placeholder until AT-013 implements the full
- * screen flow through AshenThroneGame.setScreen().
+ * <p>On confirm (AT-024 dispatch):
+ * <ul>
+ *   <li>Throne realm cleared      → {@link EndGameScreen} (game complete).</li>
+ *   <li>Last wave of other realm  → {@link VictoryScreen} in "realm complete" mode.</li>
+ *   <li>Intermediate wave         → {@link VictoryScreen} in "next wave" mode.</li>
+ * </ul>
  */
 public class VictoryState implements BattleState, BattleInputAdapter.ActionListener {
 
@@ -55,23 +59,46 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
 
     @Override
     public void render(SpriteBatch batch) {
-        // TODO: AT-015 — VictoryUI panel (gold earned, proceed button)
+        // Visual handled by VictoryScreen on confirm.
     }
 
     // ---- BattleInputAdapter.ActionListener ----
 
     @Override
     public void onConfirm() {
-        proceedToNextEncounter();
+        proceed();
     }
 
     @Override public void onActionSelected(ActionType type) {}
     @Override public void onTargetSelected(int enemyIndex)  {}
     @Override public void onCancel()                        {}
 
-    // ---- Navigation ----
+    // ---- Navigation (AT-024) ----
 
-    private void proceedToNextEncounter() {
-        screen.getGame().setScreen(new VictoryScreen(screen.getGame(), screen.getHero()));
+    private void proceed() {
+        GameSession session = GameSession.getInstance();
+        String realm = session.getCurrentRealm();
+
+        // Legacy/sandbox flow: no active realm — keep old single-screen behaviour.
+        if (realm == null) {
+            screen.getGame().setScreen(new VictoryScreen(screen.getGame(), screen.getHero(), false));
+            return;
+        }
+
+        int waveJustCleared = session.getCurrentWaveInRealm();
+        int totalWaves = RealmSelectScreen.totalWaves(realm);
+        boolean isLastWave = (waveJustCleared >= totalWaves - 1);
+
+        if (isLastWave && RealmSelectScreen.KEY_THRONE.equals(realm)) {
+            // Beat the Hollow King — mark complete and roll credits.
+            session.markRealmCompleted(realm);
+            screen.getGame().setScreen(new EndGameScreen(screen.getGame()));
+        } else if (isLastWave) {
+            // Realm cleared — VictoryScreen will mark completion + offer "Continue → tower".
+            screen.getGame().setScreen(new VictoryScreen(screen.getGame(), screen.getHero(), true));
+        } else {
+            // Intermediate wave — "Next Wave" advances to the next BattleScreen.
+            screen.getGame().setScreen(new VictoryScreen(screen.getGame(), screen.getHero(), false));
+        }
     }
 }
