@@ -373,11 +373,20 @@ public class RealmSelectScreen extends BaseScreen {
         game.setScreen(new MainMenuScreen(game));
     }
 
+    /** Total waves in a realm (AT-024 flow control). */
+    public static int totalWaves(String realmKey) {
+        return switch (realmKey) {
+            case KEY_ABYSS, KEY_FOREST -> 2;
+            case KEY_THRONE            -> 1;
+            default -> throw new IllegalArgumentException("Unknown realm: " + realmKey);
+        };
+    }
+
     /**
      * Wave compositions per AT-019 spec. Wave 0 is wave 1 in spec terms.
      * AT-026 (WaveIterator) will replace this once the iterator pattern lands.
      */
-    private static List<Enemy> buildWave(String realmKey, int waveIndex) {
+    public static List<Enemy> buildWave(String realmKey, int waveIndex) {
         RealmFactory factory = factoryFor(realmKey);
         List<Enemy> enemies = new ArrayList<>();
         switch (realmKey) {

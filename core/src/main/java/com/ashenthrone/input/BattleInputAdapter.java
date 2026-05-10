@@ -14,7 +14,8 @@ import com.badlogic.gdx.InputAdapter;
  * Key bindings:
  *   1-4        → onActionSelected (Attack / Defend / Skill / Item)
  *   Enter/Space → onConfirm
- *   Escape/Z   → onCancel  (Z used for undo in PlayerTurnState)
+ *   Escape     → onPause   (AT-023 — opens the in-battle pause menu)
+ *   Z          → onCancel  (used for undo in PlayerTurnState)
  *   Left/Right  → onTargetSelected with previous/next enemy index (wraps around)
  *
  * Touch: calls onTargetSelected(0) for now; precise hit-testing deferred to AT-015.
@@ -36,6 +37,10 @@ public class BattleInputAdapter extends InputAdapter {
         void onTargetSelected(int enemyIndex);
         void onConfirm();
         void onCancel();
+        /** Escape pressed mid-battle — open the pause menu (AT-023). */
+        default void onPause() {}
+        /** Vertical navigation for menu states. {@code dy} is -1 (up) or +1 (down). */
+        default void onNavigate(int dy) {}
     }
 
     private ActionListener listener;
@@ -77,7 +82,11 @@ public class BattleInputAdapter extends InputAdapter {
 
             case Input.Keys.ENTER, Input.Keys.SPACE -> listener.onConfirm();
 
-            case Input.Keys.ESCAPE, Input.Keys.Z    -> listener.onCancel();
+            case Input.Keys.Z      -> listener.onCancel();
+            case Input.Keys.ESCAPE -> listener.onPause();
+
+            case Input.Keys.UP, Input.Keys.W   -> listener.onNavigate(-1);
+            case Input.Keys.DOWN, Input.Keys.S -> listener.onNavigate(+1);
 
             case Input.Keys.LEFT -> {
                 selectedEnemyIndex = Math.floorMod(selectedEnemyIndex - 1, enemyCount);
