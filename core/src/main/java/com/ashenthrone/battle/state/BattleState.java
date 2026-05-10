@@ -17,9 +17,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public interface BattleState {
 
     /**
-     * Poll and process player input for this frame.
-     * Called before update() by BattleScreen.render().
-     * TODO: AT-012 — replace direct Gdx.input calls with BattleInputAdapter callbacks.
+     * Per-frame input hook. Most states leave this empty: input is delivered
+     * asynchronously through {@link com.ashenthrone.input.BattleInputAdapter.ActionListener}
+     * (AT-012), which states implement directly. Kept on the interface so a
+     * state can still poll if it needs to (e.g. continuous hold detection).
      */
     void handleInput();
 
