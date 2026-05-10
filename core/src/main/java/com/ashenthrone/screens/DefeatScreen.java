@@ -1,5 +1,6 @@
 package com.ashenthrone.screens;
 
+import com.ashenthrone.audio.AudioManager;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.core.AshenThroneGame;
 import com.ashenthrone.core.GameSession;
@@ -51,6 +52,8 @@ public class DefeatScreen extends BaseScreen {
         titleFont.getData().setScale(3f);
         infoFont.getData().setScale(1.4f);
 
+        AudioManager.getInstance().playMusic("defeat_sting");
+
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean keyDown(int keycode) {
@@ -99,7 +102,9 @@ public class DefeatScreen extends BaseScreen {
     }
     @Override public void pause()  {}
     @Override public void resume() {}
-    @Override public void hide()   {}
+    @Override public void hide()   {
+        AudioManager.getInstance().stopMusic();
+    }
 
     @Override
     public void dispose() {

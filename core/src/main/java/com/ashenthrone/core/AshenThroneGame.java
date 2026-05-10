@@ -1,5 +1,6 @@
 package com.ashenthrone.core;
 
+import com.ashenthrone.audio.AudioManager;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.prototype.EnemyRegistry;
 import com.ashenthrone.screens.MainMenuScreen;
@@ -44,7 +45,7 @@ public class AshenThroneGame extends Game {
     @Override
     public void dispose() {
         super.dispose();
-        // TODO: dispose AudioManager, AssetManager, etc.
+        AudioManager.getInstance().dispose();
     }
 
     // ---- Encounter factory (AT-013) ----

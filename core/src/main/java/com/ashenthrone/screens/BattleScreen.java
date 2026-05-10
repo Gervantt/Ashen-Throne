@@ -1,5 +1,6 @@
 package com.ashenthrone.screens;
 
+import com.ashenthrone.audio.AudioManager;
 import com.ashenthrone.battle.BattleEngine;
 import com.ashenthrone.battle.command.BattleCommand;
 import com.ashenthrone.battle.state.BattleState;
@@ -129,6 +130,17 @@ public class BattleScreen extends BaseScreen {
         Gdx.input.setInputProcessor(inputAdapter);
 
         currentState = new PlayerTurnState(this);
+
+        // AT-021: choose music based on whether the wave includes the final boss.
+        AudioManager.getInstance().playMusic(hasBoss() ? "boss_theme" : "battle_theme");
+    }
+
+    /** True if any enemy in this wave is The Hollow King — switches to boss theme. */
+    private boolean hasBoss() {
+        for (Enemy e : engine.getEnemies()) {
+            if (e != null && "HollowKing".equals(e.getType())) return true;
+        }
+        return false;
     }
 
     /**
@@ -232,7 +244,9 @@ public class BattleScreen extends BaseScreen {
 
     @Override public void pause()  {}
     @Override public void resume() {}
-    @Override public void hide()   {}
+    @Override public void hide()   {
+        AudioManager.getInstance().stopMusic();
+    }
 
     @Override
     public void dispose() {
