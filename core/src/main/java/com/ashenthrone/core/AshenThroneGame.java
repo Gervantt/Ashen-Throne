@@ -5,6 +5,7 @@ import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.prototype.EnemyRegistry;
 import com.ashenthrone.screens.MainMenuScreen;
 import com.ashenthrone.screens.SettingsScreen;
+import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.Game;
 
 import java.util.List;
@@ -39,12 +40,27 @@ public class AshenThroneGame extends Game {
     public void create() {
         GameSession.getInstance().reset();
         SettingsScreen.applySavedDisplayMode(); // AT-017
+        TransitionManager.getInstance().init(this); // AT-025
+        // Initial screen does not transition (there's nothing to fade from).
         setScreen(new MainMenuScreen(this));
+    }
+
+    /**
+     * Per-frame render: delegates to the active Screen via super.render(),
+     * then drives + draws the fade overlay on top (AT-022 / AT-025).
+     */
+    @Override
+    public void render() {
+        super.render();
+        TransitionManager tm = TransitionManager.getInstance();
+        tm.update(com.badlogic.gdx.Gdx.graphics.getDeltaTime());
+        tm.render();
     }
 
     @Override
     public void dispose() {
         super.dispose();
+        TransitionManager.getInstance().dispose();
         AudioManager.getInstance().dispose();
     }
 

@@ -6,9 +6,9 @@ import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.screens.BattleScreen;
-import com.ashenthrone.screens.EndGameScreen;
 import com.ashenthrone.screens.RealmSelectScreen;
-import com.ashenthrone.screens.VictoryScreen;
+import com.ashenthrone.transition.ScreenType;
+import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
@@ -78,10 +78,11 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
     private void proceed() {
         GameSession session = GameSession.getInstance();
         String realm = session.getCurrentRealm();
+        TransitionManager tm = TransitionManager.getInstance();
 
         // Legacy/sandbox flow: no active realm — keep old single-screen behaviour.
         if (realm == null) {
-            screen.getGame().setScreen(new VictoryScreen(screen.getGame(), screen.getHero(), false));
+            tm.goToVictory(screen.getHero(), false);
             return;
         }
 
@@ -90,15 +91,12 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
         boolean isLastWave = (waveJustCleared >= totalWaves - 1);
 
         if (isLastWave && RealmSelectScreen.KEY_THRONE.equals(realm)) {
-            // Beat the Hollow King — mark complete and roll credits.
             session.markRealmCompleted(realm);
-            screen.getGame().setScreen(new EndGameScreen(screen.getGame()));
+            tm.goTo(ScreenType.END_GAME);
         } else if (isLastWave) {
-            // Realm cleared — VictoryScreen will mark completion + offer "Continue → tower".
-            screen.getGame().setScreen(new VictoryScreen(screen.getGame(), screen.getHero(), true));
+            tm.goToVictory(screen.getHero(), true);
         } else {
-            // Intermediate wave — "Next Wave" advances to the next BattleScreen.
-            screen.getGame().setScreen(new VictoryScreen(screen.getGame(), screen.getHero(), false));
+            tm.goToVictory(screen.getHero(), false);
         }
     }
 }

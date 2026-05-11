@@ -6,6 +6,8 @@ import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.core.AshenThroneGame;
 import com.ashenthrone.core.GameSession;
+import com.ashenthrone.transition.ScreenType;
+import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -205,7 +207,6 @@ public class DefeatScreen extends BaseScreen {
     // ---- Navigation ----
 
     private void activate(int index) {
-        AudioManager.getInstance().playSFX("transition_whoosh");
         if (index == 0) retry();
         else            mainMenu();
     }
@@ -215,7 +216,6 @@ public class DefeatScreen extends BaseScreen {
         String realm = session.getCurrentRealm();
         Hero baseHero = (Hero) session.getHero();
 
-        // Defensive: without an active realm/hero, fall back to main menu.
         if (realm == null || baseHero == null) {
             mainMenu();
             return;
@@ -227,7 +227,7 @@ public class DefeatScreen extends BaseScreen {
         AbstractCharacter equipped = ShopScreen.EquipmentApplier.apply(
                 baseHero, session.getEquippedItems());
         List<Enemy> wave = RealmSelectScreen.buildWave(realm, session.getCurrentWaveInRealm());
-        game.setScreen(new BattleScreen(game, equipped, wave));
+        TransitionManager.getInstance().goToBattle(equipped, wave);
     }
 
     private void mainMenu() {
@@ -235,6 +235,6 @@ public class DefeatScreen extends BaseScreen {
         GameSession session = GameSession.getInstance();
         session.setCurrentRealm(null);
         session.setCurrentWaveInRealm(0);
-        game.setScreen(new MainMenuScreen(game));
+        TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 }

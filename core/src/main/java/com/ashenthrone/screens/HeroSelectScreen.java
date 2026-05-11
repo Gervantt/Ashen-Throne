@@ -1,10 +1,11 @@
 package com.ashenthrone.screens;
 
-import com.ashenthrone.audio.AudioManager;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.characters.HeroBuilder;
 import com.ashenthrone.core.AshenThroneGame;
 import com.ashenthrone.core.GameSession;
+import com.ashenthrone.transition.ScreenType;
+import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -356,7 +357,6 @@ public class HeroSelectScreen extends BaseScreen {
     }
 
     private void confirmHero() {
-        AudioManager.getInstance().playSFX("transition_whoosh");
         HeroDef d = HEROES[selected];
         Hero hero = new HeroBuilder()
                 .name(d.name)
@@ -368,13 +368,11 @@ public class HeroSelectScreen extends BaseScreen {
         // TODO: AT-008 — assign default skill (PhysicalAttack/MagicAttack/HealSelf)
         // once HeroBuilder.skill(AttackStrategy) is implemented.
         GameSession.getInstance().setHero(hero);
-        // TODO: AT-024/AT-025 — route through TransitionManager.
-        game.setScreen(new RealmSelectScreen(game));
+        TransitionManager.getInstance().goTo(ScreenType.REALM_SELECT);
     }
 
     private void back() {
-        AudioManager.getInstance().playSFX("transition_whoosh");
-        game.setScreen(new MainMenuScreen(game));
+        TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 
     @Override

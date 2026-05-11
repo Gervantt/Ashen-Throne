@@ -1,6 +1,5 @@
 package com.ashenthrone.screens;
 
-import com.ashenthrone.audio.AudioManager;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
@@ -10,6 +9,8 @@ import com.ashenthrone.factory.AbyssRealmFactory;
 import com.ashenthrone.factory.AshenThroneRealmFactory;
 import com.ashenthrone.factory.CursedForestFactory;
 import com.ashenthrone.factory.RealmFactory;
+import com.ashenthrone.transition.ScreenType;
+import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -339,38 +340,28 @@ public class RealmSelectScreen extends BaseScreen {
     private void activate(int index) {
         RealmDef r = REALMS[index];
         if (!isUnlocked(r)) {
-            // Locked sections silently ignore activation — there is no SFX nor
-            // transition so the player gets no false signal of progress.
+            // Locked sections silently ignore activation — no SFX or transition.
             return;
         }
-        AudioManager.getInstance().playSFX("transition_whoosh");
-
         GameSession session = GameSession.getInstance();
         session.setCurrentRealm(r.key);
         session.setCurrentWaveInRealm(0);
 
         Hero hero = (Hero) session.getHero();
         if (hero == null) {
-            // Defensive: should never happen since hero is chosen before the
-            // tower screen, but bouncing back is safer than crashing.
-            game.setScreen(new HeroSelectScreen(game));
+            TransitionManager.getInstance().goTo(ScreenType.HERO_SELECT);
             return;
         }
 
-        // AT-020: apply purchased equipment as a Decorator chain so battle
-        // stats reflect the shop loadout.
         AbstractCharacter equipped = ShopScreen.EquipmentApplier.apply(
                 hero, session.getEquippedItems());
 
         List<Enemy> wave = buildWave(r.key, 0);
-        // TODO: AT-024/AT-025 — route through TransitionManager. AT-026's
-        // WaveIterator will replace the inline wave-composition logic.
-        game.setScreen(new BattleScreen(game, equipped, wave));
+        TransitionManager.getInstance().goToBattle(equipped, wave);
     }
 
     private void back() {
-        AudioManager.getInstance().playSFX("transition_whoosh");
-        game.setScreen(new MainMenuScreen(game));
+        TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 
     /** Total waves in a realm (AT-024 flow control). */

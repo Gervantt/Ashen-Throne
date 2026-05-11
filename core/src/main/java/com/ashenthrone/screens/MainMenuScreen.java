@@ -3,6 +3,8 @@ package com.ashenthrone.screens;
 import com.ashenthrone.audio.AudioManager;
 import com.ashenthrone.core.AshenThroneGame;
 import com.ashenthrone.core.GameSession;
+import com.ashenthrone.transition.ScreenType;
+import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -192,17 +194,19 @@ public class MainMenuScreen extends BaseScreen {
     }
 
     private void activate(int index) {
-        AudioManager.getInstance().playSFX("transition_whoosh");
+        TransitionManager tm = TransitionManager.getInstance();
         switch (index) {
             case 0 -> {
-                // Play — until AT-018 is wired we route straight to hero select.
-                // TODO: AT-024 — route via TransitionManager (AT-025).
                 GameSession.getInstance().reset();
-                game.setScreen(new HeroSelectScreen(game));
+                tm.goTo(ScreenType.HERO_SELECT);
             }
-            case 1 -> game.setScreen(new ShopScreen(game));
-            case 2 -> game.setScreen(new SettingsScreen(game));
-            case 3 -> Gdx.app.exit();
+            case 1 -> tm.goTo(ScreenType.SHOP);
+            case 2 -> tm.goTo(ScreenType.SETTINGS);
+            case 3 -> {
+                // Exit: no transition needed; the whoosh still gives audio feedback.
+                AudioManager.getInstance().playSFX("transition_whoosh");
+                Gdx.app.exit();
+            }
         }
     }
 

@@ -365,8 +365,8 @@ public class ShopScreen extends BaseScreen {
     }
 
     private void back() {
-        AudioManager.getInstance().playSFX("transition_whoosh");
-        game.setScreen(new MainMenuScreen(game));
+        com.ashenthrone.transition.TransitionManager.getInstance()
+                .goTo(com.ashenthrone.transition.ScreenType.MAIN_MENU);
     }
 
     @Override
