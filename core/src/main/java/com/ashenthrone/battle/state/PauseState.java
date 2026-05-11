@@ -19,8 +19,8 @@ import com.badlogic.gdx.utils.Disposable;
  * Modal pause overlay shown when the player presses Escape mid-battle (AT-023).
  *
  * <p>Holds a reference to the previous {@link BattleState} and restores it on
- * "Continue". On "Exit to Menu" resets the session and navigates back to the
- * main menu. While this state is active the underlying battle is frozen:
+ * "Continue". On "Exit to Menu" abandons the active fight and navigates back
+ * to the main menu. While this state is active the underlying battle is frozen:
  * neither {@link #update} nor enemy AI run, since {@link BattleScreen} only
  * ticks the current state.
  *
@@ -156,7 +156,7 @@ public class PauseState implements BattleState, BattleInputAdapter.ActionListene
     }
 
     private void exitToMenu() {
-        GameSession.getInstance().reset();
+        GameSession.getInstance().abandonActiveRun();
         TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
         dispose();
     }

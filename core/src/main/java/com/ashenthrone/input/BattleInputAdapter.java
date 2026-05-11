@@ -12,7 +12,7 @@ import com.badlogic.gdx.InputAdapter;
  * logic interact with input exclusively through the {@link ActionListener} interface.
  *
  * Key bindings:
- *   1-4        → onActionSelected (Attack / Defend / Skill / Item)
+ *   1-2        → onActionSelected (Attack / Item)
  *   Enter/Space → onConfirm
  *   Escape     → onPause   (AT-023 — opens the in-battle pause menu)
  *   Z          → onCancel  (used for undo in PlayerTurnState)
@@ -20,7 +20,7 @@ import com.badlogic.gdx.InputAdapter;
  *
  * Touch: calls onTargetSelected(0) for now; precise hit-testing deferred to AT-015.
  *
- * Usage:
+ * Usagalse:
  *   BattleScreen creates one instance and registers it with Gdx.input.setInputProcessor().
  *   Each state that becomes active calls setListener(this) in its constructor.
  */
@@ -92,9 +92,7 @@ public class BattleInputAdapter extends InputAdapter {
 
         switch (keycode) {
             case Input.Keys.NUM_1 -> listener.onActionSelected(ActionType.ATTACK);
-            case Input.Keys.NUM_2 -> listener.onActionSelected(ActionType.DEFEND);
-            case Input.Keys.NUM_3 -> listener.onActionSelected(ActionType.SKILL);
-            case Input.Keys.NUM_4 -> listener.onActionSelected(ActionType.ITEM);
+            case Input.Keys.NUM_2 -> listener.onActionSelected(ActionType.ITEM);
 
             case Input.Keys.ENTER, Input.Keys.SPACE -> listener.onConfirm();
 

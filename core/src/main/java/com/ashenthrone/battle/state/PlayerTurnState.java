@@ -1,20 +1,17 @@
 package com.ashenthrone.battle.state;
 
 import com.ashenthrone.battle.ActionType;
-import com.ashenthrone.battle.command.AttackCommand;
-import com.ashenthrone.battle.command.BattleCommand;
-import com.ashenthrone.battle.command.DefendCommand;
-import com.ashenthrone.battle.command.SkillCommand;
 import com.ashenthrone.battle.command.UseItemCommand;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
+import com.ashenthrone.core.GameSession;
 import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.screens.BattleScreen;
-import com.ashenthrone.strategy.PhysicalAttack;
+import com.ashenthrone.screens.ShopScreen;
+import com.ashenthrone.ui.ItemInventoryOverlay;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Active state while the player is choosing and confirming an action (AT-006).
@@ -38,6 +35,8 @@ public class PlayerTurnState implements BattleState, BattleInputAdapter.ActionLi
     private final BattleScreen screen;
     private ActionType selectedAction;
     private int        targetIndex;
+    private boolean inventoryOpen;
+    private ItemInventoryOverlay inventoryOverlay;
 
     public PlayerTurnState(BattleScreen screen) {
         this.screen         = screen;
@@ -70,6 +69,11 @@ public class PlayerTurnState implements BattleState, BattleInputAdapter.ActionLi
     @Override
     public void onActionSelected(ActionType type) {
         selectedAction = type;
+        if (type == ActionType.ITEM) {
+            openInventory();
+        } else {
+            closeInventory();
+        }
     }
 
     @Override
@@ -85,6 +89,10 @@ public class PlayerTurnState implements BattleState, BattleInputAdapter.ActionLi
     /** Z — undo the most recent command. */
     @Override
     public void onCancel() {
+        if (inventoryOpen) {
+            closeInventory();
+            return;
+        }
         if (screen.canUndo()) {
             screen.undoLastCommand();
         }
@@ -106,32 +114,28 @@ public class PlayerTurnState implements BattleState, BattleInputAdapter.ActionLi
         // Resolve target: prefer targetIndex if alive, otherwise fall back to first alive.
         Enemy target = resolveTarget(enemies);
 
-        // Defensive fallback — hero is built with a default strategy in
-        // HeroSelectScreen (AT-018), but a sandbox-spawned hero might lack one.
-        if (hero.getCurrentStrategy() == null) {
-            hero.setCurrentStrategy(new PhysicalAttack());
+        if (selectedAction == ActionType.ATTACK) {
+            // Hand off to the timing-bar mini-game; it builds the AttackCommand
+            // once the player stops the cursor and then transitions onward.
+            if (target == null) return;
+            screen.setState(new TimingBarState(screen, target));
+            return;
         }
 
-        // SKILL passes all alive enemies so AoE strategies can hit each one.
-        List<Enemy> aliveEnemies = enemies.stream()
-                .filter(Enemy::isAlive)
-                .collect(Collectors.toList());
-
-        BattleCommand cmd = switch (selectedAction) {
-            case ATTACK -> target != null ? new AttackCommand(hero, target) : null;
-            case DEFEND -> new DefendCommand(hero);
-            case SKILL  -> !aliveEnemies.isEmpty()
-                    ? new SkillCommand(hero, List.copyOf(aliveEnemies))
-                    : null;
-            case ITEM   -> new UseItemCommand(hero);
-        };
-
-        if (cmd != null) {
-            // AT-010: route through BattleEngine.executePlayerAction()
-            screen.executeCommand(cmd);
+        if (!inventoryOpen) {
+            openInventory();
+            return;
         }
 
-        // AT-010: use DeathChecker via BattleEngine instead of inline stream check.
+        // ITEM consumes the selected Health Potion. Empty inventory keeps the turn.
+        if (GameSession.getInstance().getConsumableCount(ShopScreen.ITEM_HEALTH_POTION) <= 0) {
+            return;
+        }
+        UseItemCommand cmd = new UseItemCommand(hero);
+        screen.executeCommand(cmd);
+        if (!cmd.wasConsumed()) return;
+        closeInventory();
+
         BattleState nextState = "VICTORY".equals(screen.getBattleEngine().getResult())
                 ? new VictoryState(screen)
                 : new EnemyTurnState(screen);
@@ -151,6 +155,21 @@ public class PlayerTurnState implements BattleState, BattleInputAdapter.ActionLi
             if (e.isAlive()) return e;
         }
         return null;
+    }
+
+    private void openInventory() {
+        if (inventoryOpen) return;
+        inventoryOpen = true;
+        if (inventoryOverlay == null) {
+            inventoryOverlay = new ItemInventoryOverlay(430f, 105f, 420f, 150f);
+        }
+        screen.addOverlay(inventoryOverlay);
+    }
+
+    private void closeInventory() {
+        if (!inventoryOpen) return;
+        inventoryOpen = false;
+        if (inventoryOverlay != null) screen.removeOverlay(inventoryOverlay);
     }
 
     // ---- Accessors (for UI rendering, AT-011) ----

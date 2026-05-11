@@ -5,8 +5,10 @@ import com.ashenthrone.characters.AbstractCharacter;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -28,15 +30,29 @@ public class GameSession {
     private int currentEncounterIndex;
 
     /**
-     * Item inventory. Items are not modelled as a class — purchased equipment
-     * lives in {@link #equippedItems} keyed by id, and consumables don't exist
-     * yet, so this list remains a placeholder hook.
+     * Legacy inventory hook kept for older callers. Equipment and consumables
+     * have typed storage below.
      */
     private final List<Object> inventory;
 
     // AT-020: equipped item identifiers, in order they should be applied as
     // Decorators around the hero. Item ids are the keys defined in ShopScreen.
     private final List<String> equippedItems = new ArrayList<>();
+
+    /**
+     * Consumable inventory keyed by item id (e.g. "HealthPotion"). The value is
+     * the count the player currently owns. Bought in {@link com.ashenthrone.screens.ShopScreen}
+     * and consumed in battle via the Item action.
+     */
+    private final Map<String, Integer> consumables = new HashMap<>();
+
+    /**
+     * Gold awarded by the most recently completed wave. Set by
+     * {@link com.ashenthrone.battle.state.VictoryState} and read by
+     * {@link com.ashenthrone.screens.VictoryScreen} to render the "+N gold"
+     * popup. Reset to 0 at the start of each victory.
+     */
+    private int lastGoldGained;
 
     // AT-019: realm progression. completedRealms holds keys ("abyss", "forest",
     // "throne") for realms the player has fully cleared. currentRealm is the
@@ -73,6 +89,18 @@ public class GameSession {
         currentRealm = null;
         currentWaveInRealm = 0;
         equippedItems.clear();
+        consumables.clear();
+        lastGoldGained = 0;
+        waveIterator = null;
+    }
+
+    /** Leaves the active battle/realm attempt without wiping run progress or inventory. */
+    public void abandonActiveRun() {
+        if (hero != null && !hero.isAlive()) {
+            hero.setHp(hero.getMaxHp());
+        }
+        currentRealm = null;
+        currentWaveInRealm = 0;
         waveIterator = null;
     }
 
@@ -101,6 +129,32 @@ public class GameSession {
     public void equipItem(String itemId) {
         if (itemId == null) throw new IllegalArgumentException("itemId must not be null");
         equippedItems.add(itemId);
+    }
+
+    public Map<String, Integer> getConsumables() { return Collections.unmodifiableMap(consumables); }
+    public int getConsumableCount(String itemId) {
+        if (itemId == null) return 0;
+        return consumables.getOrDefault(itemId, 0);
+    }
+    public void addConsumable(String itemId, int count) {
+        if (itemId == null) throw new IllegalArgumentException("itemId must not be null");
+        if (count < 0) throw new IllegalArgumentException("count must be non-negative, got: " + count);
+        if (count == 0) return;
+        consumables.merge(itemId, count, Integer::sum);
+    }
+    public boolean consumeConsumable(String itemId) {
+        if (itemId == null) throw new IllegalArgumentException("itemId must not be null");
+        int count = consumables.getOrDefault(itemId, 0);
+        if (count <= 0) return false;
+        if (count == 1) consumables.remove(itemId);
+        else consumables.put(itemId, count - 1);
+        return true;
+    }
+
+    public int getLastGoldGained() { return lastGoldGained; }
+    public void setLastGoldGained(int amount) {
+        if (amount < 0) throw new IllegalArgumentException("Gold amount must be non-negative, got: " + amount);
+        lastGoldGained = amount;
     }
 
     public int getCurrentEncounterIndex() { return currentEncounterIndex; }

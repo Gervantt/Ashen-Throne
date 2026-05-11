@@ -1,5 +1,6 @@
 package com.ashenthrone.screens;
 
+import com.ashenthrone.audio.AudioManager;
 import com.ashenthrone.battle.WaveIterator;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
@@ -33,13 +34,13 @@ import java.util.List;
  * Realm tower / selection screen (AT-019).
  *
  * Tower-style vertical layout with three sections, top to bottom:
- *   1. The Abyss        — 2 waves, unlocked from start
- *   2. Cursed Forest    — 2 waves, locked until Abyss is cleared
- *   3. Ashen Throne     — 1 wave (Hollow King), locked until Forest is cleared
+ *   1. The Abyss        — 2 waves
+ *   2. Cursed Forest    — 2 waves
+ *   3. Ashen Throne     — 1 wave (Hollow King)
  *
  * Each section is a full-width tile showing the realm name, wave summary, and
- * a lock icon when not yet unlocked. Selecting an unlocked section sets the
- * current realm on {@link GameSession}, builds wave 1 via the matching
+ * a status badge. Selecting a section sets the current realm on {@link GameSession},
+ * builds wave 1 via the matching
  * {@link RealmFactory}, and launches a {@link BattleScreen}. Multi-wave
  * progression and reward screens are wired in AT-024.
  *
@@ -58,13 +59,13 @@ public class RealmSelectScreen extends BaseScreen {
     private static final RealmDef[] REALMS = {
             new RealmDef(KEY_THRONE, "Ashen Throne",
                     "Wave 1: The Hollow King",
-                    new Color(0.55f, 0.20f, 0.20f, 1f), KEY_FOREST),
+                    new Color(0.55f, 0.20f, 0.20f, 1f)),
             new RealmDef(KEY_FOREST, "Cursed Forest",
                     "Wave 1: 3 Hollow Wolves    Wave 2: 1 Treant + 2 Wolves",
-                    new Color(0.25f, 0.45f, 0.30f, 1f), KEY_ABYSS),
+                    new Color(0.25f, 0.45f, 0.30f, 1f)),
             new RealmDef(KEY_ABYSS, "The Abyss",
                     "Wave 1: 2 Stonewarden    Wave 2: 1 Emberclaw + 2 Stonewarden",
-                    new Color(0.25f, 0.30f, 0.55f, 1f), null),
+                    new Color(0.25f, 0.30f, 0.55f, 1f)),
     };
 
     // ---- Layout constants ----
@@ -114,8 +115,11 @@ public class RealmSelectScreen extends BaseScreen {
         pixel = new Texture(pm);
         pm.dispose();
 
-        // Default the cursor to the highest-tier unlocked realm so the player's
-        // first arrow press lands on the next thing they can play.
+        // Main theme persists across menu/shop/settings/hero-select/tower
+        // (idempotent — won't restart if already playing).
+        AudioManager.getInstance().playMusic("main_theme");
+
+        // Default the cursor to the highest-tier unfinished realm.
         hovered = defaultHoverIndex();
 
         Gdx.input.setInputProcessor(new InputAdapter() {
@@ -188,43 +192,34 @@ public class RealmSelectScreen extends BaseScreen {
         for (int i = 0; i < REALMS.length; i++) {
             float y = sectionY(i);
             RealmDef r = REALMS[i];
-            boolean unlocked = isUnlocked(r);
             boolean cleared  = GameSession.getInstance().hasCompletedRealm(r.key);
             boolean hot      = (i == hovered);
 
             // Border tint communicates state at a glance.
             Color border;
-            if (!unlocked)    border = new Color(0.28f, 0.24f, 0.22f, 1f);
-            else if (hot)     border = new Color(0.95f, 0.75f, 0.35f, 1f);
+            if (hot)          border = new Color(0.95f, 0.75f, 0.35f, 1f);
             else if (cleared) border = new Color(0.45f, 0.65f, 0.40f, 1f);
             else              border = new Color(0.55f, 0.40f, 0.20f, 1f);
 
             batch.setColor(border);
             batch.draw(pixel, SECTION_X - 3, y - 3, SECTION_W + 6, SECTION_H + 6);
 
-            // Body fill — darker when locked.
-            Color body = unlocked ? r.tint : dim(r.tint, 0.35f);
-            batch.setColor(body);
+            batch.setColor(r.tint);
             batch.draw(pixel, SECTION_X, y, SECTION_W, SECTION_H);
             batch.setColor(Color.WHITE);
 
             // Realm name.
-            realmFont.setColor(unlocked ? new Color(1f, 0.95f, 0.75f, 1f)
-                                        : new Color(0.5f, 0.45f, 0.40f, 1f));
+            realmFont.setColor(new Color(1f, 0.95f, 0.75f, 1f));
             realmFont.draw(batch, r.name, SECTION_X + 30f, y + SECTION_H - 30f);
 
             // Wave summary.
-            bodyFont.setColor(unlocked ? new Color(0.92f, 0.88f, 0.78f, 1f)
-                                       : new Color(0.45f, 0.40f, 0.35f, 1f));
+            bodyFont.setColor(new Color(0.92f, 0.88f, 0.78f, 1f));
             bodyFont.draw(batch, r.waveSummary, SECTION_X + 30f, y + SECTION_H - 75f);
 
-            // Status badge: CLEARED / LOCKED / READY.
+            // Status badge: CLEARED / READY.
             String status;
             Color statusColor;
-            if (!unlocked) {
-                status = "LOCKED";
-                statusColor = new Color(0.7f, 0.55f, 0.55f, 1f);
-            } else if (cleared) {
+            if (cleared) {
                 status = "CLEARED";
                 statusColor = new Color(0.6f, 0.95f, 0.6f, 1f);
             } else {
@@ -236,19 +231,6 @@ public class RealmSelectScreen extends BaseScreen {
             bodyFont.draw(batch, layout,
                     SECTION_X + SECTION_W - layout.width - 30f,
                     y + SECTION_H - 30f);
-
-            // Simple lock glyph for locked realms — a small dark square
-            // overlay in the lower-right corner stands in for an icon.
-            if (!unlocked) {
-                float lx = SECTION_X + SECTION_W - 60f;
-                float ly = y + 25f;
-                batch.setColor(new Color(0.05f, 0.04f, 0.06f, 0.85f));
-                batch.draw(pixel, lx, ly, 30f, 30f);
-                batch.setColor(new Color(0.7f, 0.55f, 0.30f, 1f));
-                batch.draw(pixel, lx + 6, ly + 16, 18f, 12f); // lock body
-                batch.draw(pixel, lx + 10, ly + 22, 10f, 8f); // shackle
-                batch.setColor(Color.WHITE);
-            }
         }
     }
 
@@ -340,10 +322,6 @@ public class RealmSelectScreen extends BaseScreen {
 
     private void activate(int index) {
         RealmDef r = REALMS[index];
-        if (!isUnlocked(r)) {
-            // Locked sections silently ignore activation — no SFX or transition.
-            return;
-        }
         GameSession session = GameSession.getInstance();
         session.setCurrentRealm(r.key);
         session.setCurrentWaveInRealm(0);
@@ -353,6 +331,7 @@ public class RealmSelectScreen extends BaseScreen {
             TransitionManager.getInstance().goTo(ScreenType.HERO_SELECT);
             return;
         }
+        hero.setHp(hero.getMaxHp());
 
         AbstractCharacter equipped = ShopScreen.EquipmentApplier.apply(
                 hero, session.getEquippedItems());
@@ -422,25 +401,14 @@ public class RealmSelectScreen extends BaseScreen {
         };
     }
 
-    private static boolean isUnlocked(RealmDef r) {
-        return r.requiresKey == null
-                || GameSession.getInstance().hasCompletedRealm(r.requiresKey);
-    }
-
     private static int defaultHoverIndex() {
-        // Highest-tier (top-most) unlocked realm so a fresh arrow-down moves
-        // toward already-cleared content rather than away from it.
+        // Highest-tier (top-most) unfinished realm.
         for (int i = 0; i < REALMS.length; i++) {
-            if (isUnlocked(REALMS[i])
-                    && !GameSession.getInstance().hasCompletedRealm(REALMS[i].key)) {
+            if (!GameSession.getInstance().hasCompletedRealm(REALMS[i].key)) {
                 return i;
             }
         }
         return REALMS.length - 1;
-    }
-
-    private static Color dim(Color c, float factor) {
-        return new Color(c.r * factor, c.g * factor, c.b * factor, c.a);
     }
 
     @Override
@@ -457,15 +425,12 @@ public class RealmSelectScreen extends BaseScreen {
         final String name;
         final String waveSummary;
         final Color  tint;
-        /** key of the realm that must be cleared to unlock this one; null for first realm. */
-        final String requiresKey;
 
-        RealmDef(String key, String name, String waveSummary, Color tint, String requiresKey) {
+        RealmDef(String key, String name, String waveSummary, Color tint) {
             this.key = key;
             this.name = name;
             this.waveSummary = waveSummary;
             this.tint = tint;
-            this.requiresKey = requiresKey;
         }
     }
 }

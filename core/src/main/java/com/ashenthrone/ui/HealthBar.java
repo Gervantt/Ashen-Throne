@@ -34,6 +34,7 @@ public class HealthBar extends UIComponent {
     @Override
     public void render(SpriteBatch batch) {
         if (!visible) return;
+        if (!character.isAlive()) return;
 
         int hp    = character.getHp();
         int maxHp = character.getMaxHp();

@@ -236,9 +236,7 @@ public class DefeatScreen extends BaseScreen {
     private void mainMenu() {
         // Preserve cleared-realm progress; only clear in-progress pointers.
         GameSession session = GameSession.getInstance();
-        session.setCurrentRealm(null);
-        session.setCurrentWaveInRealm(0);
-        session.setWaveIterator(null);
+        session.abandonActiveRun();
         TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 }

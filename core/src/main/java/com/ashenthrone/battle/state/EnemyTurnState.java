@@ -39,6 +39,8 @@ public class EnemyTurnState implements BattleState {
 
         // AT-010: delegate all enemy-phase logic to BattleEngine.
         screen.getBattleEngine().executeEnemyTurns();
+        // Trigger 4-frame swing animation on every enemy that's still alive.
+        screen.playEnemyActionAnimations();
         actionsExecuted = true;
 
         // AT-010: use DeathChecker via BattleEngine to decide the next state.

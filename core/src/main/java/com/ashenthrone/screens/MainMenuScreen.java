@@ -47,6 +47,7 @@ public class MainMenuScreen extends BaseScreen {
     private BitmapFont   titleFont;
     private BitmapFont   buttonFont;
     private Texture      pixel;
+    private Texture      background; // backgrounds/main_menu.png; null falls back to flat clear color
     private GlyphLayout  layout;
     private Viewport     viewport;
     private final Vector3 touchTmp = new Vector3();
@@ -74,6 +75,13 @@ public class MainMenuScreen extends BaseScreen {
         pm.fill();
         pixel = new Texture(pm);
         pm.dispose();
+
+        try {
+            com.badlogic.gdx.files.FileHandle fh = Gdx.files.internal("backgrounds/main_menu.png");
+            if (fh.exists()) background = new Texture(fh);
+        } catch (Exception e) {
+            Gdx.app.log("MainMenuScreen", "Failed to load main_menu.png: " + e.getMessage());
+        }
 
         AudioManager.getInstance().playMusic("main_theme");
 
@@ -127,6 +135,12 @@ public class MainMenuScreen extends BaseScreen {
         viewport.apply();
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
+
+        // Fullscreen background — falls back to flat clear color if the PNG is missing.
+        if (background != null) {
+            batch.setColor(Color.WHITE);
+            batch.draw(background, 0, 0, SCREEN_W, SCREEN_H);
+        }
 
         // Title.
         titleFont.setColor(new Color(0.85f, 0.7f, 0.3f, 1f));
@@ -195,8 +209,8 @@ public class MainMenuScreen extends BaseScreen {
         TransitionManager tm = TransitionManager.getInstance();
         switch (index) {
             case 0 -> {
-                GameSession.getInstance().reset();
-                tm.goTo(ScreenType.HERO_SELECT);
+                GameSession session = GameSession.getInstance();
+                tm.goTo(session.getHero() == null ? ScreenType.HERO_SELECT : ScreenType.REALM_SELECT);
             }
             case 1 -> tm.goTo(ScreenType.SHOP);
             case 2 -> tm.goTo(ScreenType.SETTINGS);
@@ -210,7 +224,8 @@ public class MainMenuScreen extends BaseScreen {
 
     @Override
     public void hide() {
-        AudioManager.getInstance().stopMusic();
+        // Main theme persists across menu screens — it is only stopped by
+        // BattleScreen when entering a fight.
     }
 
     @Override
@@ -219,5 +234,6 @@ public class MainMenuScreen extends BaseScreen {
         titleFont.dispose();
         buttonFont.dispose();
         pixel.dispose();
+        if (background != null) background.dispose();
     }
 }

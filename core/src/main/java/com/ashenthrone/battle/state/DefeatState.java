@@ -15,7 +15,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
  *
  * Key bindings (translated by BattleInputAdapter, AT-012):
  *   Enter/Space — retry the current encounter
- *   Escape/Z    — return to the main menu and reset the session
+ *   Escape/Z    — return to the main menu and keep run progress
  *
  * Both actions now navigate through AshenThroneGame.setScreen() (AT-013).
  */
@@ -75,7 +75,7 @@ public class DefeatState implements BattleState, BattleInputAdapter.ActionListen
     }
 
     private void returnToMainMenu() {
-        GameSession.getInstance().reset();
+        GameSession.getInstance().abandonActiveRun();
         TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 }

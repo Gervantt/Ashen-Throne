@@ -62,24 +62,24 @@ public class AudioManager {
 
     private void registerDefaults() {
         // Music (looped).
-        musicPaths.put("main_theme",    "audio/music/main_theme.ogg");
-        musicPaths.put("battle_theme",  "audio/music/battle_theme.ogg");
+        musicPaths.put("main_theme",    "audio/music/main_theme.mp3");
+        musicPaths.put("battle_theme",  "audio/music/battle_theme.mp3");
         musicPaths.put("boss_theme",    "audio/music/boss_theme.ogg");
 
         // Stings — registered as music but played non-looped.
-        musicPaths.put("victory_sting", "audio/music/victory_sting.ogg");
-        musicPaths.put("defeat_sting",  "audio/music/defeat_sting.ogg");
+        musicPaths.put("victory_sting", "audio/music/victory_sting.wav");
+        musicPaths.put("defeat_sting",  "audio/music/defeat_sting.mp3");
         nonLoopingMusic.add("victory_sting");
         nonLoopingMusic.add("defeat_sting");
 
         // SFX (one-shot).
-        sfxPaths.put("sword_hit",         "audio/sfx/sword_hit.wav");
-        sfxPaths.put("fireball",          "audio/sfx/fireball.wav");
-        sfxPaths.put("heal_cast",         "audio/sfx/heal_cast.wav");
-        sfxPaths.put("enemy_death",       "audio/sfx/enemy_death.wav");
-        sfxPaths.put("hero_hurt",         "audio/sfx/hero_hurt.wav");
-        sfxPaths.put("transition_whoosh", "audio/sfx/transition_whoosh.wav");
-        sfxPaths.put("purchase_sound",    "audio/sfx/purchase_sound.wav");
+        sfxPaths.put("sword_hit",         "audio/sfx/sword_hit.mp3");
+        sfxPaths.put("fireball",          "audio/sfx/fireball.mp3");
+        sfxPaths.put("heal_cast",         "audio/sfx/heal_cast.mp3");
+        sfxPaths.put("enemy_death",       "audio/sfx/enemy_death.mp3");
+        sfxPaths.put("hero_hurt",         "audio/sfx/hero_hurt.mp3");
+        sfxPaths.put("transition_whoosh", "audio/sfx/transition_whoosh.mp3");
+        sfxPaths.put("purchase_sound",    "audio/sfx/purchase_sound.mp3");
     }
 
     /**

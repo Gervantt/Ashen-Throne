@@ -160,7 +160,10 @@ public class VictoryScreen extends BaseScreen {
                 SCREEN_H / 2f + 160f);
 
         infoFont.setColor(new Color(0.9f, 0.75f, 0.1f, 1f));
-        String goldText = "Gold: " + GameSession.getInstance().getGold();
+        int gained = GameSession.getInstance().getLastGoldGained();
+        String goldText = gained > 0
+                ? "+" + gained + " gold collected     Total: " + GameSession.getInstance().getGold()
+                : "Gold: " + GameSession.getInstance().getGold();
         layout.setText(infoFont, goldText);
         infoFont.draw(batch, layout,
                 (SCREEN_W - layout.width) / 2f,
@@ -256,11 +259,22 @@ public class VictoryScreen extends BaseScreen {
             return;
         }
         List<Enemy> wave = iterator.next();
-        session.setCurrentWaveInRealm(iterator.getCurrentWaveNumber() - 1);
+        int waveNumber = iterator.getCurrentWaveNumber();
+        session.setCurrentWaveInRealm(waveNumber - 1);
+
+        baseHero.setHp(baseHero.getMaxHp());
+        applyWaveEscalation(wave, waveNumber - 1);
 
         AbstractCharacter equipped = ShopScreen.EquipmentApplier.apply(
                 baseHero, session.getEquippedItems());
         TransitionManager.getInstance().goToBattle(equipped, wave);
+    }
+
+    private void applyWaveEscalation(List<Enemy> wave, int level) {
+        if (level <= 0) return;
+        for (Enemy enemy : wave) {
+            if (enemy != null) enemy.applyWaveEscalation(level);
+        }
     }
 
     private void goToTower() {

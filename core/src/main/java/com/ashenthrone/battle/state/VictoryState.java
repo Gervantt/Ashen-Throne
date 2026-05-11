@@ -1,6 +1,7 @@
 package com.ashenthrone.battle.state;
 
 import com.ashenthrone.battle.ActionType;
+import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.core.GameSession;
 import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
@@ -27,9 +28,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
  */
 public class VictoryState implements BattleState, BattleInputAdapter.ActionListener {
 
-    /** Base gold reward; multiplied by (encounterIndex + 1). */
-    private static final int BASE_GOLD_REWARD = 10;
-
     private final BattleScreen screen;
     private boolean rewardGranted;
 
@@ -50,9 +48,11 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
     @Override
     public void update(float delta) {
         if (!rewardGranted) {
-            int reward = BASE_GOLD_REWARD * (GameSession.getInstance().getCurrentEncounterIndex() + 1);
-            GameSession.getInstance().addGold(reward);
-            GameSession.getInstance().advanceEncounter();
+            GameSession session = GameSession.getInstance();
+            int reward = calculateGoldReward();
+            session.addGold(reward);
+            session.setLastGoldGained(reward);
+            session.advanceEncounter();
             rewardGranted = true;
             EventManager.getInstance().publish(GameEvent.battleEnd("VICTORY"));
         }
@@ -73,6 +73,26 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
     @Override public void onActionSelected(ActionType type) {}
     @Override public void onTargetSelected(int enemyIndex)  {}
     @Override public void onCancel()                        {}
+
+    private int calculateGoldReward() {
+        int total = 0;
+        for (Enemy enemy : screen.getEnemies()) {
+            total += rewardFor(enemy);
+        }
+        return total;
+    }
+
+    private int rewardFor(Enemy enemy) {
+        if (enemy == null) return 0;
+        String type = enemy.getType();
+        if ("HollowKing".equals(type)) return 100;
+        if ("Wraith".equals(type) || "Treant".equals(type)) return randomBetween(30, 50);
+        return randomBetween(10, 20);
+    }
+
+    private int randomBetween(int min, int max) {
+        return min + com.badlogic.gdx.math.MathUtils.random(max - min);
+    }
 
     // ---- Navigation (AT-024) ----
 

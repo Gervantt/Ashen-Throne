@@ -66,9 +66,7 @@ public class ActionButton extends UIComponent {
     private static String labelFor(ActionType type) {
         return switch (type) {
             case ATTACK -> "1 Attack";
-            case DEFEND -> "2 Defend";
-            case SKILL  -> "3 Skill";
-            case ITEM   -> "4 Item";
+            case ITEM   -> "2 Item";
         };
     }
 }

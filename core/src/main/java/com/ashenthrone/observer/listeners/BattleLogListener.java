@@ -37,7 +37,8 @@ public class BattleLogListener implements EventListener {
             }
             case ITEM_USED -> {
                 String targetName = event.getTarget() != null ? event.getTarget().getName() : "Unknown";
-                yield targetName + " used an item.";
+                String itemName = event.getItem() != null ? displayName(event.getItem().toString()) : "an item";
+                yield targetName + " used " + itemName + ".";
             }
             case BATTLE_END -> "Battle ended: " + event.getResult() + "!";
         };
@@ -61,5 +62,10 @@ public class BattleLogListener implements EventListener {
     /** Clears the log; call when starting a new battle. */
     public void clear() {
         lines.clear();
+    }
+
+    private static String displayName(String id) {
+        if ("HealthPotion".equals(id)) return "Health Potion";
+        return id;
     }
 }

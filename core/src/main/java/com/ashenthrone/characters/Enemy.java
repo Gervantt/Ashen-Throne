@@ -57,6 +57,18 @@ public class Enemy extends AbstractCharacter implements Cloneable {
         }
     }
 
+    /**
+     * Small per-wave escalation applied to fresh spawned enemies after wave 1.
+     * Level 1 is intentionally mild: +10% HP, +2 attack, +1 defense.
+     */
+    public void applyWaveEscalation(int level) {
+        if (level <= 0) return;
+        maxHp = Math.max(1, Math.round(maxHp * (1f + 0.10f * level)));
+        hp = maxHp;
+        attack += 2 * level;
+        defense += level;
+    }
+
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
 }

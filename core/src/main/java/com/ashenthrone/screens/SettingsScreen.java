@@ -101,6 +101,10 @@ public class SettingsScreen extends BaseScreen {
         pixel = new Texture(pm);
         pm.dispose();
 
+        // Main theme persists across menu/shop/settings/hero-select/tower
+        // (idempotent — won't restart if already playing).
+        AudioManager.getInstance().playMusic("main_theme");
+
         Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
         fullscreen = prefs.getBoolean(PREF_FULLSCREEN, false);
 

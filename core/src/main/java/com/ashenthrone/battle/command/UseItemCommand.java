@@ -1,21 +1,20 @@
 package com.ashenthrone.battle.command;
 
 import com.ashenthrone.characters.AbstractCharacter;
+import com.ashenthrone.core.GameSession;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
+import com.ashenthrone.screens.ShopScreen;
 
 /**
- * Placeholder "use item" battle action (AT-007).
- *
- * <p>Consumable items are not modelled yet — purchased equipment lives in
- * {@link com.ashenthrone.core.GameSession#getEquippedItems()} as permanent
- * Decorators rather than per-turn consumables. {@link #execute} therefore
- * only publishes {@code ITEM_USED} so the battle log stays consistent;
- * {@link #undo} is a true no-op.
+ * Uses one Health Potion from the player's consumable inventory.
+ * Restores 35% of max HP, with undo support for the command stack.
  */
 public class UseItemCommand implements BattleCommand {
 
     private final AbstractCharacter user;
+    private int previousHp;
+    private boolean consumed;
 
     public UseItemCommand(AbstractCharacter user) {
         this.user = user;
@@ -23,11 +22,21 @@ public class UseItemCommand implements BattleCommand {
 
     @Override
     public void execute() {
-        EventManager.getInstance().publish(GameEvent.itemUsed(null, user));
+        previousHp = user.getHp();
+        int healedAmount = Math.max(1, Math.round(user.getMaxHp() * 0.35f));
+        consumed = GameSession.getInstance().consumeConsumable(ShopScreen.ITEM_HEALTH_POTION);
+        if (!consumed) return;
+
+        user.heal(healedAmount);
+        EventManager.getInstance().publish(GameEvent.itemUsed(ShopScreen.ITEM_HEALTH_POTION, user));
     }
 
     @Override
     public void undo() {
-        // No state was mutated — nothing to reverse.
+        if (!consumed) return;
+        user.setHp(previousHp);
+        GameSession.getInstance().addConsumable(ShopScreen.ITEM_HEALTH_POTION, 1);
     }
+
+    public boolean wasConsumed() { return consumed; }
 }

@@ -1,9 +1,9 @@
 package com.ashenthrone.screens;
 
+import com.ashenthrone.audio.AudioManager;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.characters.HeroBuilder;
 import com.ashenthrone.strategy.AttackStrategy;
-import com.ashenthrone.strategy.HealSelf;
 import com.ashenthrone.strategy.MagicAttack;
 import com.ashenthrone.strategy.PhysicalAttack;
 import com.ashenthrone.core.AshenThroneGame;
@@ -59,17 +59,17 @@ public class HeroSelectScreen extends BaseScreen {
                     new Color(0.30f, 0.55f, 0.40f, 1f),
                     "Fleet-footed killer who strikes from the shadows.\n" +
                     "Frail, but always the first to act."),
-            new HeroDef("Sera",     100, 14, 10, 12, "Healer",
-                    new Color(0.85f, 0.75f, 0.45f, 1f),
-                    "Light-bearer of the fallen order. Channels divine\n" +
-                    "favor to mend wounds mid-battle."),
     };
 
     // ---- Layout constants ----
     private static final float PORTRAIT_X = 60f;
     private static final float PORTRAIT_W = 110f;
     private static final float PORTRAIT_H = 110f;
-    private static final float PORTRAIT_GAP = 16f;
+    /** Vertical gap between successive portrait tiles. Must clear the name
+     *  label drawn below each tile (see {@link #LABEL_DROP}). */
+    private static final float PORTRAIT_GAP = 38f;
+    /** Distance from the bottom of the portrait to the baseline of its name. */
+    private static final float LABEL_DROP = 22f;
 
     private static final float PANEL_X = 230f;
     private static final float PANEL_Y = 80f;
@@ -89,6 +89,7 @@ public class HeroSelectScreen extends BaseScreen {
     private BitmapFont  nameFont;
     private BitmapFont  bodyFont;
     private Texture     pixel;
+    private Texture[]   avatars; // hero_<key>_avatar.png; null entries fall back to colored block
     private GlyphLayout layout;
     private Viewport    viewport;
     private final Vector3 touchTmp = new Vector3();
@@ -118,6 +119,18 @@ public class HeroSelectScreen extends BaseScreen {
         pm.fill();
         pixel = new Texture(pm);
         pm.dispose();
+
+        // Main theme persists across menu/shop/settings/hero-select/tower
+        // (idempotent — won't restart if already playing).
+        AudioManager.getInstance().playMusic("main_theme");
+
+        // Hero avatars (AT-018 / AT-021) — used in both the portrait list and the
+        // big preview. Missing files degrade to the tinted-block placeholder.
+        avatars = new Texture[HEROES.length];
+        for (int i = 0; i < HEROES.length; i++) {
+            String key = HEROES[i].name.toLowerCase();
+            avatars[i] = tryLoad("images/heroes/hero_" + key + "_avatar.png");
+        }
 
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
@@ -168,6 +181,16 @@ public class HeroSelectScreen extends BaseScreen {
         });
     }
 
+    private static Texture tryLoad(String path) {
+        try {
+            com.badlogic.gdx.files.FileHandle fh = Gdx.files.internal(path);
+            if (fh.exists()) return new Texture(fh);
+        } catch (Exception e) {
+            Gdx.app.log("HeroSelectScreen", "Failed to load '" + path + "': " + e.getMessage());
+        }
+        return null;
+    }
+
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0.06f, 0.04f, 0.08f, 1f);
@@ -202,17 +225,22 @@ public class HeroSelectScreen extends BaseScreen {
             batch.setColor(border);
             batch.draw(pixel, PORTRAIT_X - 3, py - 3, PORTRAIT_W + 6, PORTRAIT_H + 6);
 
-            // Placeholder portrait fill — replace with a Texture when hero art is bundled.
-            batch.setColor(HEROES[i].tint);
-            batch.draw(pixel, PORTRAIT_X, py, PORTRAIT_W, PORTRAIT_H);
-            batch.setColor(Color.WHITE);
+            // Avatar texture if available, otherwise fall back to a tinted block.
+            if (avatars[i] != null) {
+                batch.setColor(Color.WHITE);
+                batch.draw(avatars[i], PORTRAIT_X, py, PORTRAIT_W, PORTRAIT_H);
+            } else {
+                batch.setColor(HEROES[i].tint);
+                batch.draw(pixel, PORTRAIT_X, py, PORTRAIT_W, PORTRAIT_H);
+                batch.setColor(Color.WHITE);
+            }
 
-            // Name label below portrait.
+            // Name label below portrait (extra drop so it doesn't overlap the avatar).
             bodyFont.setColor(isSel ? new Color(1f, 0.95f, 0.7f, 1f) : Color.LIGHT_GRAY);
             layout.setText(bodyFont, HEROES[i].name);
             bodyFont.draw(batch, layout,
                     PORTRAIT_X + (PORTRAIT_W - layout.width) / 2f,
-                    py - 6f);
+                    py - LABEL_DROP);
         }
     }
 
@@ -226,14 +254,20 @@ public class HeroSelectScreen extends BaseScreen {
 
         HeroDef h = HEROES[selected];
 
-        // Preview image (placeholder color block).
+        // Preview image — uses hero_<name>.png if present, falls back to color block.
         float imgX = PANEL_X + 30f;
         float imgY = PANEL_Y + PANEL_H - PREVIEW_H - 30f;
         batch.setColor(new Color(0.25f, 0.20f, 0.15f, 1f));
         batch.draw(pixel, imgX - 3, imgY - 3, PREVIEW_W + 6, PREVIEW_H + 6);
-        batch.setColor(h.tint);
-        batch.draw(pixel, imgX, imgY, PREVIEW_W, PREVIEW_H);
-        batch.setColor(Color.WHITE);
+        // Big preview uses the avatar (face/portrait shot), not the battle sprite sheet.
+        if (avatars[selected] != null) {
+            batch.setColor(Color.WHITE);
+            batch.draw(avatars[selected], imgX, imgY, PREVIEW_W, PREVIEW_H);
+        } else {
+            batch.setColor(h.tint);
+            batch.draw(pixel, imgX, imgY, PREVIEW_W, PREVIEW_H);
+            batch.setColor(Color.WHITE);
+        }
 
         // Stats / role panel to the right of the image.
         float infoX = imgX + PREVIEW_W + 40f;
@@ -376,7 +410,6 @@ public class HeroSelectScreen extends BaseScreen {
     private static AttackStrategy defaultSkillFor(String role) {
         return switch (role) {
             case "Dark Mage" -> new MagicAttack();
-            case "Healer"    -> new HealSelf();
             default          -> new PhysicalAttack();
         };
     }
@@ -392,6 +425,9 @@ public class HeroSelectScreen extends BaseScreen {
         nameFont.dispose();
         bodyFont.dispose();
         pixel.dispose();
+        if (avatars != null) {
+            for (Texture t : avatars) if (t != null) t.dispose();
+        }
     }
 
     // ---- Internal data carrier ----
