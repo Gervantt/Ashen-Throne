@@ -1,5 +1,8 @@
 package com.ashenthrone.core;
 
+import com.ashenthrone.battle.WaveIterator;
+import com.ashenthrone.characters.AbstractCharacter;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -14,11 +17,22 @@ public class GameSession {
 
     private static GameSession instance;
 
-    // Will hold a Hero reference once the character model exists (AT-002).
-    private Object hero; // TODO: change to Hero type
+    /**
+     * Active hero. Stored as {@link AbstractCharacter} so callers can hold the
+     * bare {@link com.ashenthrone.characters.Hero} or a
+     * {@link com.ashenthrone.characters.CharacterDecorator} chain (AT-005)
+     * interchangeably.
+     */
+    private AbstractCharacter hero;
     private int gold;
     private int currentEncounterIndex;
-    private final List<Object> inventory; // TODO: change to Item type
+
+    /**
+     * Item inventory. Items are not modelled as a class — purchased equipment
+     * lives in {@link #equippedItems} keyed by id, and consumables don't exist
+     * yet, so this list remains a placeholder hook.
+     */
+    private final List<Object> inventory;
 
     // AT-020: equipped item identifiers, in order they should be applied as
     // Decorators around the hero. Item ids are the keys defined in ShopScreen.
@@ -31,6 +45,12 @@ public class GameSession {
     private final Set<String> completedRealms = new HashSet<>();
     private String currentRealm;
     private int currentWaveInRealm;
+
+    // AT-026: iterator over the active realm's waves. Mirrors currentRealm /
+    // currentWaveInRealm — those remain authoritative for non-iterator code
+    // paths (UI labels, persistence), but anything that needs to advance
+    // through waves consults the iterator.
+    private WaveIterator waveIterator;
 
     private GameSession() {
         inventory = new ArrayList<>();
@@ -53,12 +73,13 @@ public class GameSession {
         currentRealm = null;
         currentWaveInRealm = 0;
         equippedItems.clear();
+        waveIterator = null;
     }
 
     // ---- Getters & Setters ----
 
-    public Object getHero() { return hero; }
-    public void setHero(Object hero) { this.hero = hero; }
+    public AbstractCharacter getHero() { return hero; }
+    public void setHero(AbstractCharacter hero) { this.hero = hero; }
 
     public int getGold() { return gold; }
     public void addGold(int amount) {
@@ -102,4 +123,7 @@ public class GameSession {
     public int getCurrentWaveInRealm() { return currentWaveInRealm; }
     public void setCurrentWaveInRealm(int wave) { this.currentWaveInRealm = wave; }
     public void advanceWave() { this.currentWaveInRealm++; }
+
+    public WaveIterator getWaveIterator() { return waveIterator; }
+    public void setWaveIterator(WaveIterator iterator) { this.waveIterator = iterator; }
 }

@@ -227,16 +227,17 @@ public class SettingsScreen extends BaseScreen {
     }
 
     private void activate(int index) {
-        AudioManager.getInstance().playSFX("transition_whoosh");
         switch (index) {
             case BTN_TOGGLE -> {
+                AudioManager.getInstance().playSFX("transition_whoosh");
                 fullscreen = !fullscreen;
                 Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
                 prefs.putBoolean(PREF_FULLSCREEN, fullscreen);
                 prefs.flush();
                 applyDisplayMode(fullscreen);
             }
-            case BTN_BACK -> game.setScreen(new MainMenuScreen(game));
+            case BTN_BACK -> com.ashenthrone.transition.TransitionManager.getInstance()
+                    .goTo(com.ashenthrone.transition.ScreenType.MAIN_MENU);
         }
     }
 

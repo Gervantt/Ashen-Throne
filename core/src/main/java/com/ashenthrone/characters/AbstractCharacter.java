@@ -41,21 +41,38 @@ public abstract class AbstractCharacter {
         defending = false;
     }
 
-    /** Apply poison, buffs, debuffs, etc. Placeholder for now. */
+    /**
+     * Template hook for per-turn status effects. Status effects are not
+     * modelled on the character; {@link com.ashenthrone.battle.BattleEngine}
+     * runs {@link com.ashenthrone.battle.StatusEffectProcessor} over every
+     * combatant during the enemy phase, which keeps the work out of the
+     * Template Method.
+     */
     protected void applyStatusEffects() {
-        // TODO: integrate with StatusEffectProcessor (AT-010)
+        // Intentionally empty — see Javadoc.
     }
 
     /** Subclass responsibility: decide what to do this turn. */
     protected abstract void chooseAction();
 
-    /** Carry out whatever action was chosen. Placeholder until Command system (AT-007). */
+    /**
+     * Template hook for action execution. Commands are dispatched by
+     * {@link com.ashenthrone.battle.BattleEngine#executePlayerAction} and
+     * enemy strategies fire inside {@link Enemy#chooseAction()}, so this
+     * method has no work to do — it exists to keep the Template Method
+     * sequence (begin → effects → choose → execute → end) explicit.
+     */
     protected void executeAction() {
-        // TODO: execute the chosen BattleCommand
+        // Intentionally empty — see Javadoc.
     }
 
+    /**
+     * Template hook for end-of-turn bookkeeping. Combat events (damage,
+     * death) are published from {@link #takeDamage} as they happen, so no
+     * per-turn observer notification is needed here.
+     */
     protected void endTurn() {
-        // TODO: notify observers (AT-009)
+        // Intentionally empty — see Javadoc.
     }
 
     // ---- Combat helpers ----

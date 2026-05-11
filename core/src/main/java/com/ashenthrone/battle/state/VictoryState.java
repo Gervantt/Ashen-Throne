@@ -5,10 +5,11 @@ import com.ashenthrone.core.GameSession;
 import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
+import com.ashenthrone.battle.WaveIterator;
 import com.ashenthrone.screens.BattleScreen;
-import com.ashenthrone.screens.EndGameScreen;
 import com.ashenthrone.screens.RealmSelectScreen;
-import com.ashenthrone.screens.VictoryScreen;
+import com.ashenthrone.transition.ScreenType;
+import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
@@ -78,27 +79,25 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
     private void proceed() {
         GameSession session = GameSession.getInstance();
         String realm = session.getCurrentRealm();
+        WaveIterator iterator = session.getWaveIterator();
+        TransitionManager tm = TransitionManager.getInstance();
 
-        // Legacy/sandbox flow: no active realm — keep old single-screen behaviour.
-        if (realm == null) {
-            screen.getGame().setScreen(new VictoryScreen(screen.getGame(), screen.getHero(), false));
+        // Legacy/sandbox flow: no active realm/iterator — keep old single-screen behaviour.
+        if (realm == null || iterator == null) {
+            tm.goToVictory(screen.getHero(), false);
             return;
         }
 
-        int waveJustCleared = session.getCurrentWaveInRealm();
-        int totalWaves = RealmSelectScreen.totalWaves(realm);
-        boolean isLastWave = (waveJustCleared >= totalWaves - 1);
+        // AT-026: the iterator decides whether the realm is cleared.
+        boolean isLastWave = !iterator.hasNext();
 
         if (isLastWave && RealmSelectScreen.KEY_THRONE.equals(realm)) {
-            // Beat the Hollow King — mark complete and roll credits.
             session.markRealmCompleted(realm);
-            screen.getGame().setScreen(new EndGameScreen(screen.getGame()));
+            tm.goTo(ScreenType.END_GAME);
         } else if (isLastWave) {
-            // Realm cleared — VictoryScreen will mark completion + offer "Continue → tower".
-            screen.getGame().setScreen(new VictoryScreen(screen.getGame(), screen.getHero(), true));
+            tm.goToVictory(screen.getHero(), true);
         } else {
-            // Intermediate wave — "Next Wave" advances to the next BattleScreen.
-            screen.getGame().setScreen(new VictoryScreen(screen.getGame(), screen.getHero(), false));
+            tm.goToVictory(screen.getHero(), false);
         }
     }
 }

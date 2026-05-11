@@ -5,7 +5,7 @@ package com.ashenthrone.battle.command;
  *
  * Every player action (attack, defend, skill, item) is wrapped in a
  * BattleCommand before execution. Commands are pushed onto the history
- * stack held by BattleScreen (TODO: AT-010 — move stack to BattleEngine),
+ * stack held by {@link com.ashenthrone.battle.BattleEngine} (AT-010),
  * enabling undo during the player's turn.
  *
  * Rule: execute() is called exactly once before undo() may be called.

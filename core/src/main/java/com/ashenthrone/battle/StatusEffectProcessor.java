@@ -19,11 +19,14 @@ public class StatusEffectProcessor {
 
     /**
      * Processes all active status effects on a single character.
-     * Currently a no-op; extend once status effects are implemented.
+     *
+     * <p>Currently a no-op — no status-effect model exists on
+     * {@link AbstractCharacter}. The {@link com.ashenthrone.battle.BattleEngine}
+     * still calls this between phases so a future status system can plug in
+     * without re-threading the call site.
      */
     public void process(AbstractCharacter character) {
-        // TODO: iterate character.getStatusEffects() and tick each effect
-        // TODO: publish DAMAGE_DEALT events for damage-over-time effects (AT-009)
+        // Intentionally empty — no status effects modelled yet.
     }
 
     /** Convenience method — processes every character in the list. */

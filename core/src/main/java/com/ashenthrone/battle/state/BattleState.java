@@ -33,8 +33,9 @@ public interface BattleState {
     /**
      * Draw this state's UI onto the provided batch.
      * The batch is already begun by BattleScreen before this call.
-     * TODO: AT-011 — delegate to UIComponent composite tree.
-     * TODO: AT-015 — full visual layout and polish.
+     * The shared battle HUD (AT-011 Composite tree built in BattleScreen) is
+     * rendered separately on top of this pass, so most states leave this
+     * empty and put modal content in {@link #renderOverlay}.
      */
     void render(SpriteBatch batch);
 

@@ -3,6 +3,8 @@ package com.ashenthrone.screens;
 import com.ashenthrone.audio.AudioManager;
 import com.ashenthrone.core.AshenThroneGame;
 import com.ashenthrone.core.GameSession;
+import com.ashenthrone.transition.ScreenType;
+import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -174,9 +176,8 @@ public class EndGameScreen extends BaseScreen {
     }
 
     private void activate() {
-        AudioManager.getInstance().playSFX("transition_whoosh");
         // Final screen — wipe the run completely.
         GameSession.getInstance().reset();
-        game.setScreen(new MainMenuScreen(game));
+        TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 }

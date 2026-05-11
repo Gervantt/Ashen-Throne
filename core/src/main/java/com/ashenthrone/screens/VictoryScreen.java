@@ -1,11 +1,14 @@
 package com.ashenthrone.screens;
 
 import com.ashenthrone.audio.AudioManager;
+import com.ashenthrone.battle.WaveIterator;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.core.AshenThroneGame;
 import com.ashenthrone.core.GameSession;
+import com.ashenthrone.transition.ScreenType;
+import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -234,7 +237,6 @@ public class VictoryScreen extends BaseScreen {
     // ---- Navigation ----
 
     private void activate(int index) {
-        AudioManager.getInstance().playSFX("transition_whoosh");
         if (index == 0) {
             if (realmComplete) goToTower();
             else               goToNextWave();
@@ -245,34 +247,36 @@ public class VictoryScreen extends BaseScreen {
 
     private void goToNextWave() {
         GameSession session = GameSession.getInstance();
-        session.advanceWave();
-        String realm = session.getCurrentRealm();
-
+        WaveIterator iterator = session.getWaveIterator();
         Hero baseHero = (Hero) session.getHero();
-        if (realm == null || baseHero == null) {
-            // Defensive — without realm/hero context there's no wave to build.
-            game.setScreen(new RealmSelectScreen(game));
+
+        // AT-026: the iterator is authoritative for "what comes next".
+        if (iterator == null || !iterator.hasNext() || baseHero == null) {
+            TransitionManager.getInstance().goTo(ScreenType.REALM_SELECT);
             return;
         }
+        List<Enemy> wave = iterator.next();
+        session.setCurrentWaveInRealm(iterator.getCurrentWaveNumber() - 1);
+
         AbstractCharacter equipped = ShopScreen.EquipmentApplier.apply(
                 baseHero, session.getEquippedItems());
-        List<Enemy> wave = RealmSelectScreen.buildWave(realm, session.getCurrentWaveInRealm());
-        game.setScreen(new BattleScreen(game, equipped, wave));
+        TransitionManager.getInstance().goToBattle(equipped, wave);
     }
 
     private void goToTower() {
-        // Clear in-progress realm pointers so the tower screen reflects "between runs".
         GameSession session = GameSession.getInstance();
         session.setCurrentRealm(null);
         session.setCurrentWaveInRealm(0);
-        game.setScreen(new RealmSelectScreen(game));
+        session.setWaveIterator(null);
+        TransitionManager.getInstance().goTo(ScreenType.REALM_SELECT);
     }
 
     private void goToMainMenu() {
-        // Preserve cleared-realm progress; just clear in-progress pointers.
+        // Preserve cleared-realm progress; only clear in-progress pointers.
         GameSession session = GameSession.getInstance();
         session.setCurrentRealm(null);
         session.setCurrentWaveInRealm(0);
-        game.setScreen(new MainMenuScreen(game));
+        session.setWaveIterator(null);
+        TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 }

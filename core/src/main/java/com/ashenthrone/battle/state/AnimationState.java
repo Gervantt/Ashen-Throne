@@ -43,7 +43,8 @@ public class AnimationState implements BattleState {
 
     @Override
     public void render(SpriteBatch batch) {
-        // TODO: AT-011 — render damage number popups via UIComponent
-        // TODO: AT-015 — floating damage numbers (tween up + fade), screen shake
+        // Visuals owned by the shared HUD (AT-011). The state holds the loop
+        // for ANIMATION_DURATION so HealthBar interpolation reads naturally;
+        // no per-state drawing required.
     }
 }

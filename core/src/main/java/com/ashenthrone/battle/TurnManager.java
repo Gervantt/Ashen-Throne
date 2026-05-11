@@ -10,10 +10,9 @@ import java.util.stream.Collectors;
  * Determines the order in which enemies act during the enemy phase.
  *
  * Enemies are sorted by speed descending — the fastest enemy acts first.
- * Only alive enemies are included.
- *
- * TODO: extend for initiative-based mixed hero/enemy turn order when
- *       AT-013 introduces a richer encounter loop.
+ * Only alive enemies are included. Hero and enemy phases are separate
+ * (player → enemy → player), so a single sort over the enemy list is
+ * sufficient.
  */
 public class TurnManager {
 

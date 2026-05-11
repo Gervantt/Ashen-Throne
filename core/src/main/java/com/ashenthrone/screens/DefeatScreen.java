@@ -1,11 +1,14 @@
 package com.ashenthrone.screens;
 
 import com.ashenthrone.audio.AudioManager;
+import com.ashenthrone.battle.WaveIterator;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.core.AshenThroneGame;
 import com.ashenthrone.core.GameSession;
+import com.ashenthrone.transition.ScreenType;
+import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -205,18 +208,16 @@ public class DefeatScreen extends BaseScreen {
     // ---- Navigation ----
 
     private void activate(int index) {
-        AudioManager.getInstance().playSFX("transition_whoosh");
         if (index == 0) retry();
         else            mainMenu();
     }
 
     private void retry() {
         GameSession session = GameSession.getInstance();
-        String realm = session.getCurrentRealm();
+        WaveIterator iterator = session.getWaveIterator();
         Hero baseHero = (Hero) session.getHero();
 
-        // Defensive: without an active realm/hero, fall back to main menu.
-        if (realm == null || baseHero == null) {
+        if (iterator == null || iterator.getCurrentWaveNumber() == 0 || baseHero == null) {
             mainMenu();
             return;
         }
@@ -226,8 +227,10 @@ public class DefeatScreen extends BaseScreen {
 
         AbstractCharacter equipped = ShopScreen.EquipmentApplier.apply(
                 baseHero, session.getEquippedItems());
-        List<Enemy> wave = RealmSelectScreen.buildWave(realm, session.getCurrentWaveInRealm());
-        game.setScreen(new BattleScreen(game, equipped, wave));
+        // AT-026: rebuild the current wave through the iterator — fresh clones,
+        // no double-advance.
+        List<Enemy> wave = iterator.currentWave();
+        TransitionManager.getInstance().goToBattle(equipped, wave);
     }
 
     private void mainMenu() {
@@ -235,6 +238,7 @@ public class DefeatScreen extends BaseScreen {
         GameSession session = GameSession.getInstance();
         session.setCurrentRealm(null);
         session.setCurrentWaveInRealm(0);
-        game.setScreen(new MainMenuScreen(game));
+        session.setWaveIterator(null);
+        TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 }

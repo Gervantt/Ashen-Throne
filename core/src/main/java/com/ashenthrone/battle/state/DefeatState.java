@@ -6,8 +6,8 @@ import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.screens.BattleScreen;
-import com.ashenthrone.screens.DefeatScreen;
-import com.ashenthrone.screens.MainMenuScreen;
+import com.ashenthrone.transition.ScreenType;
+import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
@@ -47,8 +47,8 @@ public class DefeatState implements BattleState, BattleInputAdapter.ActionListen
 
     @Override
     public void render(SpriteBatch batch) {
-        // TODO: AT-011 — render DefeatUI panel (retry / main menu buttons)
-        // TODO: AT-015 — full visual layout
+        // Retry / Main Menu UI lives on DefeatScreen (AT-013/AT-024); this
+        // state is transient — the next BATTLE_END tick navigates away.
     }
 
     // ---- BattleInputAdapter.ActionListener ----
@@ -71,11 +71,11 @@ public class DefeatState implements BattleState, BattleInputAdapter.ActionListen
     // ---- Navigation ----
 
     private void retryEncounter() {
-        screen.getGame().setScreen(new DefeatScreen(screen.getGame(), screen.getHero()));
+        TransitionManager.getInstance().goToDefeat(screen.getHero());
     }
 
     private void returnToMainMenu() {
         GameSession.getInstance().reset();
-        screen.getGame().setScreen(new MainMenuScreen(screen.getGame()));
+        TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 }

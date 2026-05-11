@@ -5,11 +5,13 @@ import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
 
 /**
- * Consumes an item from the player's inventory and applies its effect.
+ * Placeholder "use item" battle action (AT-007).
  *
- * Placeholder until the item/inventory system is implemented. Once items
- * exist, execute() should remove the item from GameSession.inventory and
- * apply its effect; undo() should return the item and reverse the effect.
+ * <p>Consumable items are not modelled yet — purchased equipment lives in
+ * {@link com.ashenthrone.core.GameSession#getEquippedItems()} as permanent
+ * Decorators rather than per-turn consumables. {@link #execute} therefore
+ * only publishes {@code ITEM_USED} so the battle log stays consistent;
+ * {@link #undo} is a true no-op.
  */
 public class UseItemCommand implements BattleCommand {
 
@@ -21,15 +23,11 @@ public class UseItemCommand implements BattleCommand {
 
     @Override
     public void execute() {
-        // TODO: consume item from GameSession.getInstance().getInventory()
-        //       and apply its effect to user (or a target)
-        // Publish with null item until the item system is implemented (AT-014).
         EventManager.getInstance().publish(GameEvent.itemUsed(null, user));
     }
 
     @Override
     public void undo() {
-        // TODO: return item to GameSession.getInstance().getInventory()
-        //       and reverse the item's effect on user (or target)
+        // No state was mutated — nothing to reverse.
     }
 }

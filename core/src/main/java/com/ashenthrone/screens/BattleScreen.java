@@ -27,6 +27,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -127,6 +128,7 @@ public class BattleScreen extends BaseScreen {
 
         // AT-012: register the adapter once; states swap the listener via setListener().
         inputAdapter.setEnemyCount(engine.getEnemies().size());
+        inputAdapter.setEnemyHitTester(this::enemyAtScreenPos);
         Gdx.input.setInputProcessor(inputAdapter);
 
         currentState = new PlayerTurnState(this);
@@ -259,6 +261,33 @@ public class BattleScreen extends BaseScreen {
     }
 
     // ---- State machine ----
+
+    /**
+     * Maps a window-space click to an enemy index using the same slot layout
+     * as {@link #buildHud()}. Returns -1 if the click missed every sprite.
+     * Wired into {@link BattleInputAdapter#setEnemyHitTester} (AT-012/AT-015).
+     */
+    private int enemyAtScreenPos(int screenX, int screenY) {
+        if (viewport == null) return -1;
+        Vector3 v = new Vector3(screenX, screenY, 0f);
+        viewport.unproject(v);
+
+        List<Enemy> enemies = engine.getEnemies();
+        int n = enemies.size();
+        if (n == 0) return -1;
+
+        float enemyAreaLeft  = SCREEN_W * 0.55f;
+        float enemyAreaRight = SCREEN_W - 80f;
+        float slotW = (enemyAreaRight - enemyAreaLeft) / n;
+
+        if (v.y < SPRITE_Y || v.y > SPRITE_Y + SPRITE_H) return -1;
+        for (int i = 0; i < n; i++) {
+            float slotCenter = enemyAreaLeft + slotW * (i + 0.5f);
+            float ex = slotCenter - SPRITE_W / 2f;
+            if (v.x >= ex && v.x <= ex + SPRITE_W) return i;
+        }
+        return -1;
+    }
 
     /** Transitions to a new state immediately (takes effect next frame). */
     public void setState(BattleState state) {

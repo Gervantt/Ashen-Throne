@@ -43,7 +43,18 @@ public class BattleInputAdapter extends InputAdapter {
         default void onNavigate(int dy) {}
     }
 
+    /**
+     * Resolves a window-space pixel to an enemy index, or -1 for "no hit".
+     * BattleScreen wires this so the adapter stays decoupled from layout
+     * details (which is the whole point of being an adapter).
+     */
+    @FunctionalInterface
+    public interface EnemyHitTester {
+        int hit(int screenX, int screenY);
+    }
+
     private ActionListener listener;
+    private EnemyHitTester hitTester;
     private int selectedEnemyIndex = 0;
     private int enemyCount = 1;
 
@@ -52,6 +63,11 @@ public class BattleInputAdapter extends InputAdapter {
     /** Replaces the active listener. Call this in each state's constructor. */
     public void setListener(ActionListener listener) {
         this.listener = listener;
+    }
+
+    /** Plug in the screen-space → enemy-index resolver. Set once by BattleScreen. */
+    public void setEnemyHitTester(EnemyHitTester hitTester) {
+        this.hitTester = hitTester;
     }
 
     /**
@@ -105,8 +121,10 @@ public class BattleInputAdapter extends InputAdapter {
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         if (listener == null) return false;
-        // TODO: AT-015 — compute enemy index from screen coordinates using actual sprite bounds.
-        listener.onTargetSelected(0);
+        int idx = (hitTester != null) ? hitTester.hit(screenX, screenY) : 0;
+        if (idx < 0) return false;
+        selectedEnemyIndex = Math.min(idx, enemyCount - 1);
+        listener.onTargetSelected(selectedEnemyIndex);
         return true;
     }
 }
