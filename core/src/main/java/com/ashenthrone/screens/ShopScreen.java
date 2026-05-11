@@ -69,6 +69,14 @@ public class ShopScreen extends BaseScreen {
 
     private static final float BUY_W = CARD_W - 60f;
     private static final float BUY_H = 50f;
+    private static final float BUY_Y_OFFSET = 28f;
+
+    private static final float ICON_FRAME_W = 150f;
+    private static final float ICON_FRAME_H = 150f;
+    private static final float ICON_PADDING = 10f;
+    private static final float ICON_TOP_PADDING = 40f;
+    private static final float TITLE_GAP = 22f;
+    private static final float LINE_GAP = 27f;
 
     private static final float BACK_W = 160f;
     private static final float BACK_H = 44f;
@@ -252,36 +260,36 @@ public class ShopScreen extends BaseScreen {
             batch.setColor(Color.WHITE);
 
             // Icon — uses items/item_<id>.png if present, falls back to tinted block.
-            float iconW = 180f;
-            float iconH = 180f;
-            float iconX = x + (CARD_W - iconW) / 2f;
-            float iconY = y + CARD_H - iconH - 50f;
+            float iconX = x + (CARD_W - ICON_FRAME_W) / 2f;
+            float iconY = y + CARD_H - ICON_FRAME_H - ICON_TOP_PADDING;
             batch.setColor(new Color(0.25f, 0.20f, 0.15f, 1f));
-            batch.draw(pixel, iconX - 3, iconY - 3, iconW + 6, iconH + 6);
+            batch.draw(pixel, iconX - 3, iconY - 3, ICON_FRAME_W + 6, ICON_FRAME_H + 6);
             if (itemIcons[i] != null) {
                 batch.setColor(Color.WHITE);
-                batch.draw(itemIcons[i], iconX, iconY, iconW, iconH);
+                drawIconFitted(itemIcons[i], iconX, iconY, ICON_FRAME_W, ICON_FRAME_H, ICON_PADDING);
             } else {
                 batch.setColor(item.tint);
-                batch.draw(pixel, iconX, iconY, iconW, iconH);
+                batch.draw(pixel, iconX + ICON_PADDING, iconY + ICON_PADDING,
+                        ICON_FRAME_W - ICON_PADDING * 2f, ICON_FRAME_H - ICON_PADDING * 2f);
                 batch.setColor(Color.WHITE);
             }
 
             // Title + effect.
             itemFont.setColor(new Color(1f, 0.95f, 0.75f, 1f));
             layout.setText(itemFont, item.name);
-            itemFont.draw(batch, layout, x + (CARD_W - layout.width) / 2f, iconY - 20f);
+            itemFont.draw(batch, layout, x + (CARD_W - layout.width) / 2f, iconY - TITLE_GAP);
 
             bodyFont.setColor(new Color(0.85f, 0.80f, 0.70f, 1f));
             layout.setText(bodyFont, item.effect);
-            bodyFont.draw(batch, layout, x + (CARD_W - layout.width) / 2f, iconY - 50f);
+            bodyFont.draw(batch, layout, x + (CARD_W - layout.width) / 2f, iconY - TITLE_GAP - LINE_GAP);
 
             // Price line.
             bodyFont.setColor(affordable ? new Color(0.95f, 0.85f, 0.3f, 1f)
                                          : new Color(0.7f, 0.40f, 0.40f, 1f));
             String priceText = item.cost + " gold";
             layout.setText(bodyFont, priceText);
-            bodyFont.draw(batch, layout, x + (CARD_W - layout.width) / 2f, iconY - 80f);
+            bodyFont.draw(batch, layout, x + (CARD_W - layout.width) / 2f,
+                    iconY - TITLE_GAP - LINE_GAP * 2f);
 
             // Buy button.
             float[] r = buyRect(i);
@@ -333,8 +341,20 @@ public class ShopScreen extends BaseScreen {
 
     private float[] buyRect(int i) {
         float x = cardX(i) + (CARD_W - BUY_W) / 2f;
-        float y = CARDS_Y + 30f;
+        float y = CARDS_Y + BUY_Y_OFFSET;
         return new float[] { x, y, BUY_W, BUY_H };
+    }
+
+    private void drawIconFitted(Texture texture, float frameX, float frameY,
+                                float frameW, float frameH, float padding) {
+        float maxW = frameW - padding * 2f;
+        float maxH = frameH - padding * 2f;
+        float scale = Math.min(maxW / texture.getWidth(), maxH / texture.getHeight());
+        float drawW = texture.getWidth() * scale;
+        float drawH = texture.getHeight() * scale;
+        float drawX = frameX + (frameW - drawW) / 2f;
+        float drawY = frameY + (frameH - drawH) / 2f;
+        batch.draw(texture, drawX, drawY, drawW, drawH);
     }
 
     private float[] backRect() {
