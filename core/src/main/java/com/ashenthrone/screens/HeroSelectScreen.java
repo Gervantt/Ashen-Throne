@@ -2,6 +2,10 @@ package com.ashenthrone.screens;
 
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.characters.HeroBuilder;
+import com.ashenthrone.strategy.AttackStrategy;
+import com.ashenthrone.strategy.HealSelf;
+import com.ashenthrone.strategy.MagicAttack;
+import com.ashenthrone.strategy.PhysicalAttack;
 import com.ashenthrone.core.AshenThroneGame;
 import com.ashenthrone.core.GameSession;
 import com.ashenthrone.transition.ScreenType;
@@ -198,8 +202,7 @@ public class HeroSelectScreen extends BaseScreen {
             batch.setColor(border);
             batch.draw(pixel, PORTRAIT_X - 3, py - 3, PORTRAIT_W + 6, PORTRAIT_H + 6);
 
-            // Placeholder portrait fill.
-            // TODO: AT-021 — replace with hero_<name>_portrait.png when art is bundled.
+            // Placeholder portrait fill — replace with a Texture when hero art is bundled.
             batch.setColor(HEROES[i].tint);
             batch.draw(pixel, PORTRAIT_X, py, PORTRAIT_W, PORTRAIT_H);
             batch.setColor(Color.WHITE);
@@ -231,7 +234,6 @@ public class HeroSelectScreen extends BaseScreen {
         batch.setColor(h.tint);
         batch.draw(pixel, imgX, imgY, PREVIEW_W, PREVIEW_H);
         batch.setColor(Color.WHITE);
-        // TODO: AT-021 — replace with hero_<name>_sheet.png when art is bundled.
 
         // Stats / role panel to the right of the image.
         float infoX = imgX + PREVIEW_W + 40f;
@@ -364,11 +366,19 @@ public class HeroSelectScreen extends BaseScreen {
                 .attack(d.attack)
                 .defense(d.defense)
                 .speed(d.speed)
+                .skill(defaultSkillFor(d.role))
                 .build();
-        // TODO: AT-008 — assign default skill (PhysicalAttack/MagicAttack/HealSelf)
-        // once HeroBuilder.skill(AttackStrategy) is implemented.
         GameSession.getInstance().setHero(hero);
         TransitionManager.getInstance().goTo(ScreenType.REALM_SELECT);
+    }
+
+    /** Default attack strategy per role (AT-008 / AT-018). */
+    private static AttackStrategy defaultSkillFor(String role) {
+        return switch (role) {
+            case "Dark Mage" -> new MagicAttack();
+            case "Healer"    -> new HealSelf();
+            default          -> new PhysicalAttack();
+        };
     }
 
     private void back() {

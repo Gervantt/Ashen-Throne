@@ -1,5 +1,6 @@
 package com.ashenthrone.screens;
 
+import com.ashenthrone.battle.WaveIterator;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
@@ -356,7 +357,11 @@ public class RealmSelectScreen extends BaseScreen {
         AbstractCharacter equipped = ShopScreen.EquipmentApplier.apply(
                 hero, session.getEquippedItems());
 
-        List<Enemy> wave = buildWave(r.key, 0);
+        // AT-026: spin up the realm's WaveIterator and pull wave 1 from it.
+        WaveIterator iterator = factoryFor(r.key).createWaveIterator();
+        session.setWaveIterator(iterator);
+        List<Enemy> wave = iterator.next();
+        session.setCurrentWaveInRealm(iterator.getCurrentWaveNumber() - 1);
         TransitionManager.getInstance().goToBattle(equipped, wave);
     }
 

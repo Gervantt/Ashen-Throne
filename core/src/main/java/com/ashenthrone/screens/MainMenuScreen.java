@@ -128,8 +128,6 @@ public class MainMenuScreen extends BaseScreen {
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
-        // TODO: AT-021 — replace with main-menu background Texture.
-
         // Title.
         titleFont.setColor(new Color(0.85f, 0.7f, 0.3f, 1f));
         layout.setText(titleFont, "ASHEN THRONE");

@@ -1,6 +1,7 @@
 package com.ashenthrone.screens;
 
 import com.ashenthrone.audio.AudioManager;
+import com.ashenthrone.battle.WaveIterator;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
@@ -213,10 +214,10 @@ public class DefeatScreen extends BaseScreen {
 
     private void retry() {
         GameSession session = GameSession.getInstance();
-        String realm = session.getCurrentRealm();
+        WaveIterator iterator = session.getWaveIterator();
         Hero baseHero = (Hero) session.getHero();
 
-        if (realm == null || baseHero == null) {
+        if (iterator == null || iterator.getCurrentWaveNumber() == 0 || baseHero == null) {
             mainMenu();
             return;
         }
@@ -226,7 +227,9 @@ public class DefeatScreen extends BaseScreen {
 
         AbstractCharacter equipped = ShopScreen.EquipmentApplier.apply(
                 baseHero, session.getEquippedItems());
-        List<Enemy> wave = RealmSelectScreen.buildWave(realm, session.getCurrentWaveInRealm());
+        // AT-026: rebuild the current wave through the iterator — fresh clones,
+        // no double-advance.
+        List<Enemy> wave = iterator.currentWave();
         TransitionManager.getInstance().goToBattle(equipped, wave);
     }
 
@@ -235,6 +238,7 @@ public class DefeatScreen extends BaseScreen {
         GameSession session = GameSession.getInstance();
         session.setCurrentRealm(null);
         session.setCurrentWaveInRealm(0);
+        session.setWaveIterator(null);
         TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 }

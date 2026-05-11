@@ -5,6 +5,7 @@ import com.ashenthrone.core.GameSession;
 import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
+import com.ashenthrone.battle.WaveIterator;
 import com.ashenthrone.screens.BattleScreen;
 import com.ashenthrone.screens.RealmSelectScreen;
 import com.ashenthrone.transition.ScreenType;
@@ -78,17 +79,17 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
     private void proceed() {
         GameSession session = GameSession.getInstance();
         String realm = session.getCurrentRealm();
+        WaveIterator iterator = session.getWaveIterator();
         TransitionManager tm = TransitionManager.getInstance();
 
-        // Legacy/sandbox flow: no active realm — keep old single-screen behaviour.
-        if (realm == null) {
+        // Legacy/sandbox flow: no active realm/iterator — keep old single-screen behaviour.
+        if (realm == null || iterator == null) {
             tm.goToVictory(screen.getHero(), false);
             return;
         }
 
-        int waveJustCleared = session.getCurrentWaveInRealm();
-        int totalWaves = RealmSelectScreen.totalWaves(realm);
-        boolean isLastWave = (waveJustCleared >= totalWaves - 1);
+        // AT-026: the iterator decides whether the realm is cleared.
+        boolean isLastWave = !iterator.hasNext();
 
         if (isLastWave && RealmSelectScreen.KEY_THRONE.equals(realm)) {
             session.markRealmCompleted(realm);

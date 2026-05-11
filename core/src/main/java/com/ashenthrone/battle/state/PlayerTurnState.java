@@ -63,7 +63,6 @@ public class PlayerTurnState implements BattleState, BattleInputAdapter.ActionLi
     public void render(SpriteBatch batch) {
         // AT-011: keep the ActionMenu highlight in sync with the current selection.
         screen.getActionMenu().setSelected(selectedAction);
-        // TODO: AT-015 — show "(Z) Undo" button when screen.canUndo() is true
     }
 
     // ---- BattleInputAdapter.ActionListener ----
@@ -107,8 +106,8 @@ public class PlayerTurnState implements BattleState, BattleInputAdapter.ActionLi
         // Resolve target: prefer targetIndex if alive, otherwise fall back to first alive.
         Enemy target = resolveTarget(enemies);
 
-        // Ensure the hero always has a strategy when the player presses SKILL.
-        // TODO: AT-013 — swap strategy via Skill submenu selection.
+        // Defensive fallback — hero is built with a default strategy in
+        // HeroSelectScreen (AT-018), but a sandbox-spawned hero might lack one.
         if (hero.getCurrentStrategy() == null) {
             hero.setCurrentStrategy(new PhysicalAttack());
         }

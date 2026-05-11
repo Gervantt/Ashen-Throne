@@ -51,6 +51,6 @@ public class EnemyTurnState implements BattleState {
 
     @Override
     public void render(SpriteBatch batch) {
-        // TODO: AT-015 — full visual layout (turn indicator etc.)
+        // Visuals owned by the shared HUD (AT-011); nothing state-specific here.
     }
 }

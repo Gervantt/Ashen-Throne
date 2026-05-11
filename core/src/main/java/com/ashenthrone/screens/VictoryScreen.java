@@ -1,6 +1,7 @@
 package com.ashenthrone.screens;
 
 import com.ashenthrone.audio.AudioManager;
+import com.ashenthrone.battle.WaveIterator;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.Hero;
@@ -246,17 +247,19 @@ public class VictoryScreen extends BaseScreen {
 
     private void goToNextWave() {
         GameSession session = GameSession.getInstance();
-        session.advanceWave();
-        String realm = session.getCurrentRealm();
-
+        WaveIterator iterator = session.getWaveIterator();
         Hero baseHero = (Hero) session.getHero();
-        if (realm == null || baseHero == null) {
+
+        // AT-026: the iterator is authoritative for "what comes next".
+        if (iterator == null || !iterator.hasNext() || baseHero == null) {
             TransitionManager.getInstance().goTo(ScreenType.REALM_SELECT);
             return;
         }
+        List<Enemy> wave = iterator.next();
+        session.setCurrentWaveInRealm(iterator.getCurrentWaveNumber() - 1);
+
         AbstractCharacter equipped = ShopScreen.EquipmentApplier.apply(
                 baseHero, session.getEquippedItems());
-        List<Enemy> wave = RealmSelectScreen.buildWave(realm, session.getCurrentWaveInRealm());
         TransitionManager.getInstance().goToBattle(equipped, wave);
     }
 
@@ -264,6 +267,7 @@ public class VictoryScreen extends BaseScreen {
         GameSession session = GameSession.getInstance();
         session.setCurrentRealm(null);
         session.setCurrentWaveInRealm(0);
+        session.setWaveIterator(null);
         TransitionManager.getInstance().goTo(ScreenType.REALM_SELECT);
     }
 
@@ -272,6 +276,7 @@ public class VictoryScreen extends BaseScreen {
         GameSession session = GameSession.getInstance();
         session.setCurrentRealm(null);
         session.setCurrentWaveInRealm(0);
+        session.setWaveIterator(null);
         TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 }

@@ -27,6 +27,5 @@ public class BattleBackground extends UIComponent {
         batch.setColor(FILL);
         batch.draw(pixel(), x, y, width, height);
         batch.setColor(Color.WHITE);
-        // TODO: AT-021 — replace with realm-specific background Texture.
     }
 }

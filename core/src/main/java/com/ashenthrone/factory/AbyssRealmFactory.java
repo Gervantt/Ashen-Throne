@@ -1,5 +1,7 @@
 package com.ashenthrone.factory;
 
+import com.ashenthrone.battle.AbyssWaveIterator;
+import com.ashenthrone.battle.WaveIterator;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.prototype.EnemyRegistry;
 
@@ -28,7 +30,11 @@ public class AbyssRealmFactory implements RealmFactory {
 
     @Override
     public String createBackground() {
-        // TODO: AT-015 — return a Background object when the visual layer is implemented
         return "backgrounds/abyss.png";
+    }
+
+    @Override
+    public WaveIterator createWaveIterator() {
+        return new AbyssWaveIterator(this);
     }
 }

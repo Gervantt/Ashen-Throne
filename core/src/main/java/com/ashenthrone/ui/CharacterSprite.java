@@ -34,6 +34,5 @@ public class CharacterSprite extends UIComponent {
         batch.setColor(tint);
         batch.draw(pixel(), x, y, width, height);
         batch.setColor(Color.WHITE);
-        // TODO: AT-018 / AT-019 / AT-021 — draw the character sprite sheet here.
     }
 }

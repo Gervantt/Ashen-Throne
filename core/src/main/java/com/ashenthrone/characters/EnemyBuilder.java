@@ -1,5 +1,7 @@
 package com.ashenthrone.characters;
 
+import com.ashenthrone.strategy.AttackStrategy;
+
 /**
  * Fluent builder for Enemy.
  * Usage: new EnemyBuilder().name("Shadow Crawler").type("ShadowCrawler").hp(40).attack(10).defense(5).speed(8).build()
@@ -43,7 +45,11 @@ public class EnemyBuilder {
         return this;
     }
 
-    // TODO: public EnemyBuilder strategy(AttackStrategy strategy) — AT-008
+    /** Assigns the enemy's default {@link AttackStrategy} (AT-008). */
+    public EnemyBuilder strategy(AttackStrategy strategy) {
+        enemy.setCurrentStrategy(strategy);
+        return this;
+    }
 
     public Enemy build() {
         if (enemy.name == null)   throw new IllegalStateException("Enemy must have a name");

@@ -13,11 +13,10 @@ import com.ashenthrone.observer.GameEvent;
  * On BATTLE_END: stores the final result string so it can be displayed
  * or acted upon (e.g. by AT-013 screen navigation).
  *
- * The state machine in EnemyTurnState / PlayerTurnState already drives
- * VictoryState / DefeatState transitions; this checker is a read-only
- * observer of the same facts.
- * TODO: AT-010 — BattleEngine can delegate win/lose detection here and
- *       remove the inline checks from EnemyTurnState / PlayerTurnState.
+ * Read-only observer: the authoritative win/lose decision lives in
+ * {@link com.ashenthrone.battle.BattleEngine#getResult()} via
+ * {@link com.ashenthrone.battle.DeathChecker}; this listener exists so UI
+ * code can query post-battle stats without re-scanning the combatant list.
  */
 public class VictoryChecker implements EventListener {
 

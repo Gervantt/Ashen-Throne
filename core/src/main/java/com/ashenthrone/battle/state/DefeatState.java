@@ -47,8 +47,8 @@ public class DefeatState implements BattleState, BattleInputAdapter.ActionListen
 
     @Override
     public void render(SpriteBatch batch) {
-        // TODO: AT-011 — render DefeatUI panel (retry / main menu buttons)
-        // TODO: AT-015 — full visual layout
+        // Retry / Main Menu UI lives on DefeatScreen (AT-013/AT-024); this
+        // state is transient — the next BATTLE_END tick navigates away.
     }
 
     // ---- BattleInputAdapter.ActionListener ----
