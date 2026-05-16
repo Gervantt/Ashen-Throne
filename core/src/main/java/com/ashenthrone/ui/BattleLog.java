@@ -6,14 +6,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.List;
 
-/**
- * Scrolling battle log showing up to {@link BattleLogListener#MAX_LINES} lines (AT-011).
- *
- * Reads live log lines from the BattleLogListener each frame, so it always
- * reflects the most recent events without any extra wiring.
- *
- * Visual: semi-transparent dark background, white text lines spaced by font line height.
- */
 public class BattleLog extends UIComponent {
 
     private static final Color BG_COLOR   = new Color(0f, 0f, 0f, 0.65f);
@@ -35,12 +27,10 @@ public class BattleLog extends UIComponent {
     public void render(SpriteBatch batch) {
         if (!visible) return;
 
-        // Semi-transparent background
         batch.setColor(BG_COLOR);
         batch.draw(pixel(), x, y, width, height);
         batch.setColor(Color.WHITE);
 
-        // Log lines — oldest at top, newest at bottom
         List<String> lines = listener.getLines();
         font().setColor(TEXT_COLOR);
         for (int i = 0; i < lines.size(); i++) {

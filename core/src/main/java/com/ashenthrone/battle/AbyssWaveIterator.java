@@ -6,21 +6,12 @@ import com.ashenthrone.factory.RealmFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Abyss realm waves (AT-026):
- *   wave 1: 2× minion       (Stonewarden in flavour text)
- *   wave 2: 1× elite + 2× minion (Emberclaw + Stonewardens)
- *
- * <p>Enemies come from the bound {@link RealmFactory} so the concrete
- * templates (Abstract Factory, AT-004) decide flavour while this iterator
- * decides composition.
- */
 public class AbyssWaveIterator implements WaveIterator {
 
     private static final int TOTAL_WAVES = 2;
 
     private final RealmFactory factory;
-    private int waveNumber; // 0 == not started
+    private int waveNumber;
 
     public AbyssWaveIterator(RealmFactory factory) {
         if (factory == null) throw new IllegalArgumentException("factory must not be null");
@@ -53,7 +44,7 @@ public class AbyssWaveIterator implements WaveIterator {
                 wave.add(factory.createMinion());
                 wave.add(factory.createMinion());
             }
-            default -> { /* 0 or out-of-range → empty list */ }
+            default -> {  }
         }
         return wave;
     }

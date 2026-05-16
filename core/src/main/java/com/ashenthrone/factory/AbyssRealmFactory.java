@@ -5,10 +5,6 @@ import com.ashenthrone.battle.WaveIterator;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.prototype.EnemyRegistry;
 
-/**
- * Concrete Abstract Factory — Abyss realm.
- * Produces ShadowCrawler (minion), Wraith (elite), and HollowKing (boss).
- */
 public class AbyssRealmFactory implements RealmFactory {
 
     private final EnemyRegistry registry = EnemyRegistry.getInstance();

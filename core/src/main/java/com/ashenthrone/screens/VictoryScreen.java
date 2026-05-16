@@ -25,20 +25,6 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.List;
 
-/**
- * Post-battle victory screen (AT-013, AT-024).
- *
- * <p>Two modes, decided by the caller (typically
- * {@link com.ashenthrone.battle.state.VictoryState}):
- * <ul>
- *   <li>Intermediate wave — title "WAVE CLEARED", Continue starts the next wave.</li>
- *   <li>Realm complete    — title "REALM CLEARED", marks the realm done in
- *       {@link GameSession} and Continue returns to the realm tower.</li>
- * </ul>
- *
- * <p>Two buttons (Continue / Main Menu) navigable by Up/Down + Enter or by
- * mouse click. Each button fires {@code transition_whoosh}.
- */
 public class VictoryScreen extends BaseScreen {
 
     private static final int SCREEN_W = 1280;
@@ -68,7 +54,6 @@ public class VictoryScreen extends BaseScreen {
         this.realmComplete = realmComplete;
     }
 
-    /** Backwards-compatible 2-arg form: defaults to "next wave" mode. */
     public VictoryScreen(AshenThroneGame game, AbstractCharacter hero) {
         this(game, hero, false);
     }
@@ -91,8 +76,6 @@ public class VictoryScreen extends BaseScreen {
         pixel = new Texture(pm);
         pm.dispose();
 
-        // Mark the realm as completed once, on first show — drives the
-        // tower's progress bar and unlocks the next realm.
         if (realmComplete) {
             String key = GameSession.getInstance().getCurrentRealm();
             if (key != null) GameSession.getInstance().markRealmCompleted(key);
@@ -237,8 +220,6 @@ public class VictoryScreen extends BaseScreen {
         if (pixel != null) pixel.dispose();
     }
 
-    // ---- Navigation ----
-
     private void activate(int index) {
         if (index == 0) {
             if (realmComplete) goToTower();
@@ -253,7 +234,6 @@ public class VictoryScreen extends BaseScreen {
         WaveIterator iterator = session.getWaveIterator();
         Hero baseHero = (Hero) session.getHero();
 
-        // AT-026: the iterator is authoritative for "what comes next".
         if (iterator == null || !iterator.hasNext() || baseHero == null) {
             TransitionManager.getInstance().goTo(ScreenType.REALM_SELECT);
             return;
@@ -286,7 +266,7 @@ public class VictoryScreen extends BaseScreen {
     }
 
     private void goToMainMenu() {
-        // Preserve cleared-realm progress; only clear in-progress pointers.
+
         GameSession session = GameSession.getInstance();
         session.setCurrentRealm(null);
         session.setCurrentWaveInRealm(0);

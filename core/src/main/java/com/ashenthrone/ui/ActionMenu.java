@@ -6,18 +6,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Horizontal action menu containing four ActionButtons (AT-011 Composite).
- *
- * The four buttons (Attack, Defend, Skill, Item) are laid out in a row.
- * Call setSelected(ActionType) each frame from PlayerTurnState to keep
- * the highlight in sync with the player's current selection.
- */
 public class ActionMenu extends UIComponent {
 
     private static final float BUTTON_GAP = 10f;
 
-    /** Direct reference kept alongside the children list for fast iteration. */
     private final List<ActionButton> buttons = new ArrayList<>();
 
     public ActionMenu(float x, float y, float width, float height) {
@@ -39,10 +31,7 @@ public class ActionMenu extends UIComponent {
         }
     }
 
-    /**
-     * Highlights the button matching {@code selected}; all others are deselected.
-     * Call this from PlayerTurnState.render() every frame.
-     */
+
     public void setSelected(ActionType selected) {
         for (ActionButton btn : buttons) {
             btn.setSelected(btn.getType() == selected);

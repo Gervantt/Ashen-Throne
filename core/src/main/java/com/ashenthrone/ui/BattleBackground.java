@@ -5,30 +5,17 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-/**
- * Fullscreen battle background (AT-015 + AT-019/AT-021).
- *
- * <p>Loads the realm-specific texture passed in {@code texturePath} (the path
- * returned by {@link com.ashenthrone.factory.RealmFactory#createBackground()}).
- * Falls back to a flat dark fill when no path is supplied or the file is
- * missing, so battles still render without art.
- */
 public class BattleBackground extends UIComponent {
 
     private static final Color FILL = new Color(0.08f, 0.07f, 0.12f, 1f);
 
     private final Texture texture;
 
-    /** Solid-color background — no texture. */
     public BattleBackground(float x, float y, float width, float height) {
         this(null, x, y, width, height);
     }
 
-    /**
-     * Texture-backed background. {@code texturePath} is resolved through
-     * {@link Gdx#files} and may be null or missing; a tinted rectangle stands
-     * in for missing art.
-     */
+
     public BattleBackground(String texturePath, float x, float y, float width, float height) {
         this.x = x;
         this.y = y;

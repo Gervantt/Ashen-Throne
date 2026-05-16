@@ -17,18 +17,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-/**
- * Settings screen (AT-017).
- *
- * Two sections:
- *   1. Display — toggle between fullscreen and windowed (1280×720).
- *   2. Controls — read-only list of in-game key bindings.
- *
- * Display preference is persisted via libGDX {@link Preferences} under the
- * key {@code "fullscreen"}; the chosen mode is applied immediately and on
- * subsequent launches by reading the same pref at startup (callers that
- * boot the application can use {@link #applySavedDisplayMode()}).
- */
 public class SettingsScreen extends BaseScreen {
 
     private static final int SCREEN_W = 1280;
@@ -55,15 +43,13 @@ public class SettingsScreen extends BaseScreen {
 
     private boolean fullscreen;
 
-    // Three interactive buttons: Toggle Display, Apply, Back.
     private static final int BTN_TOGGLE = 0;
     private static final int BTN_BACK   = 1;
     private int hovered = BTN_TOGGLE;
-    // Константы разметки (Ширина увеличена до 760px, чтобы плашки клавиш не теснились)
+
     private final float panelW = 760f;
     private final float panelX = (SCREEN_W - panelW) / 2f;
 
-    // Точная цветовая палитра из целевого дизайна (приглушенное золото и глубокий темный)
     private final Color goldTheme       = new Color(0.78f, 0.61f, 0.34f, 1f);
     private final Color panelBg         = new Color(0.07f, 0.06f, 0.06f, 0.95f);
     private final Color panelBorder     = new Color(0.28f, 0.24f, 0.18f, 1f);
@@ -73,11 +59,7 @@ public class SettingsScreen extends BaseScreen {
         super(game);
     }
 
-    /**
-     * Reads the persisted display mode and applies it. Safe to call before
-     * the first frame; should be invoked from {@code AshenThroneGame.create}
-     * once asset/window setup is done.
-     */
+
     public static void applySavedDisplayMode() {
         Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
         boolean fs = prefs.getBoolean(PREF_FULLSCREEN, false);
@@ -110,8 +92,6 @@ public class SettingsScreen extends BaseScreen {
         pixel = new Texture(pm);
         pm.dispose();
 
-        // Main theme persists across menu/shop/settings/hero-select/tower
-        // (idempotent — won't restart if already playing).
         AudioManager.getInstance().playMusic("main_theme");
 
         Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
@@ -168,25 +148,21 @@ public class SettingsScreen extends BaseScreen {
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
-        // 1. Заголовок "SETTINGS" с декоративными линиями по бокам
         titleFont.setColor(goldTheme);
         layout.setText(titleFont, "SETTINGS");
         float titleX = (SCREEN_W - layout.width) / 2f;
         float titleY = SCREEN_H - 60f;
         titleFont.draw(batch, layout, titleX, titleY);
 
-        // Линии слева и справа от заголовка
         batch.setColor(panelBorder);
         batch.draw(pixel, titleX - 140f, titleY - 12f, 110f, 1f);
         batch.draw(pixel, titleX + layout.width + 30f, titleY - 12f, 110f, 1f);
 
         float currentY = titleY - 60f;
 
-        // 2. Панель DISPLAY (Высота увеличена до 140px для лучшего распределения)
         float displayH = 140f;
         currentY -= displayH;
 
-        // Фон и рамка панели Display
         batch.setColor(panelBg);
         batch.draw(pixel, panelX, currentY, panelW, displayH);
         batch.setColor(panelBorder);
@@ -195,27 +171,22 @@ public class SettingsScreen extends BaseScreen {
         batch.draw(pixel, panelX, currentY, 1.5f, displayH);
         batch.draw(pixel, panelX + panelW - 1.5f, currentY, 1.5f, displayH);
 
-        // Заголовок DISPLAY внутри панели и горизонтальная линия от него
         bodyFont.setColor(goldTheme);
         bodyFont.draw(batch, "DISPLAY", panelX + 30f, currentY + displayH - 24f);
         batch.setColor(panelBorder);
         batch.draw(pixel, panelX + 110f, currentY + displayH - 32f, panelW - 140f, 1f);
 
-        // Текстовое описание режима
         bodyFont.setColor(Color.GRAY);
         bodyFont.draw(batch, "Window Mode", panelX + 30f, currentY + 75f);
         bodyFont.setColor(Color.WHITE);
         bodyFont.draw(batch, fullscreen ? "Fullscreen" : "Windowed • 1280 × 720", panelX + 30f, currentY + 45f);
 
-        // Кнопка TOGGLE MODE
         drawButton("TOGGLE MODE", panelX + panelW - 220f - 30f, currentY + 42f, 220f, 44f, hovered == BTN_TOGGLE);
 
-        // 3. Панель CONTROLS (Высота 300px под просторную таблицу)
         currentY -= 24f;
         float controlsH = 300f;
         currentY -= controlsH;
 
-        // Фон и рамка панели Controls
         batch.setColor(panelBg);
         batch.draw(pixel, panelX, currentY, panelW, controlsH);
         batch.setColor(panelBorder);
@@ -224,27 +195,23 @@ public class SettingsScreen extends BaseScreen {
         batch.draw(pixel, panelX, currentY, 1.5f, controlsH);
         batch.draw(pixel, panelX + panelW - 1.5f, currentY, 1.5f, controlsH);
 
-        // Заголовок CONTROLS внутри панели и горизонтальная линия от него
         bodyFont.setColor(goldTheme);
         bodyFont.draw(batch, "CONTROLS", panelX + 30f, currentY + controlsH - 24f);
         batch.setColor(panelBorder);
         batch.draw(pixel, panelX + 130f, currentY + controlsH - 32f, panelW - 160f, 1f);
 
-        // Геометрия таблицы управления
         float startTableY = currentY + controlsH - 80f;
-        float centerDividerX = panelX + (panelW / 2f) - 30f; // Центральная ось разделителя
+        float centerDividerX = panelX + (panelW / 2f) - 30f;
 
         for (int i = 0; i < KEY_BINDINGS.length; i++) {
             float rowY = startTableY - (i * 42f);
 
-            // Рендеринг рамки вокруг горячей клавиши (Key Badge)
             layout.setText(bodyFont, KEY_BINDINGS[i][0]);
             float badgeW = layout.width + 24f;
             float badgeH = 30f;
             float badgeX = centerDividerX - badgeW - 20f;
             float badgeY = rowY - 10f;
 
-            // Темная подложка плашки и её рамка
             batch.setColor(0.11f, 0.09f, 0.08f, 0.7f);
             batch.draw(pixel, badgeX, badgeY, badgeW, badgeH);
             batch.setColor(panelBorder);
@@ -253,41 +220,34 @@ public class SettingsScreen extends BaseScreen {
             batch.draw(pixel, badgeX, badgeY, 1f, badgeH);
             batch.draw(pixel, badgeX + badgeW - 1f, badgeY, 1f, badgeH);
 
-            // Текст внутри плашки
             bodyFont.setColor(goldTheme);
             bodyFont.draw(batch, layout, badgeX + 12f, badgeY + badgeH - 8f);
 
-            // Текст действия в правой колонке
             bodyFont.setColor(textLight);
             bodyFont.draw(batch, KEY_BINDINGS[i][1], centerDividerX + 20f, rowY + 12f);
 
-            // Тонкие горизонтальные разделители строк
             if (i < KEY_BINDINGS.length - 1) {
                 batch.setColor(0.14f, 0.12f, 0.12f, 1f);
                 batch.draw(pixel, panelX + 30f, rowY - 22f, panelW - 60f, 1f);
             }
         }
 
-        // Вертикальная разделительная линия по центру таблицы
         batch.setColor(panelBorder);
         batch.draw(pixel, centerDividerX, currentY + 25f, 1f, controlsH - 110f);
 
-        // 4. Кнопка BACK (Внизу справа с аккуратной стрелкой)
         drawButton("←  BACK", panelX + panelW - 160f, currentY - 70f, 160f, 44f, hovered == BTN_BACK);
 
         batch.end();
     }
 
     private void drawButton(String label, float x, float y, float w, float h, boolean isHovered) {
-        // Меняем цвета в зависимости от наведения мыши
+
         Color bg     = isHovered ? new Color(0.35f, 0.25f, 0.12f, 1f) : new Color(0.13f, 0.11f, 0.12f, 1f);
         Color border = isHovered ? goldTheme : new Color(0.35f, 0.28f, 0.18f, 1f);
 
-        // Заливка кнопки
         batch.setColor(bg);
         batch.draw(pixel, x, y, w, h);
 
-        // Рамка кнопки
         batch.setColor(border);
         batch.draw(pixel, x, y, w, 1.5f);
         batch.draw(pixel, x, y + h - 1.5f, w, 1.5f);
@@ -306,7 +266,6 @@ public class SettingsScreen extends BaseScreen {
         float vx = touchTmp.x;
         float vy = touchTmp.y;
 
-        // Новые математические Y-координаты интерактивных кнопок
         float toggleY = SCREEN_H - 60f - 60f - 140f + 42f;
         float backY = SCREEN_H - 60f - 60f - 140f - 24f - 300f - 70f;
 

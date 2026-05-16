@@ -7,13 +7,6 @@ import com.badlogic.gdx.graphics.Texture;
 
 import java.util.List;
 
-/**
- * Thin wrapper around libGDX {@link AssetManager} (AT-014 skeleton).
- *
- * Provides a tiny façade with {@link #loadAll(List)} (queue any path; type is
- * inferred from extension) and {@link #loadingFinished()} (poll progress).
- * Concrete asset paths are registered in AT-021.
- */
 public class GameAssetManager {
 
     private static GameAssetManager instance;
@@ -29,13 +22,7 @@ public class GameAssetManager {
         return instance;
     }
 
-    /**
-     * Queue every path for asynchronous loading. Asset type is inferred from
-     * file extension: .png/.jpg → Texture, .ogg/.mp3 (long) → Music,
-     * .wav/.ogg (short SFX) → Sound. Long-form .ogg vs .wav distinction is
-     * conventional — we treat .wav as Sound and .ogg/.mp3 as Music here;
-     * AT-021 may override per-asset.
-     */
+
     public void loadAll(List<String> paths) {
         for (String path : paths) {
             String lower = path.toLowerCase();
@@ -46,11 +33,10 @@ public class GameAssetManager {
             } else if (lower.endsWith(".ogg") || lower.endsWith(".mp3")) {
                 manager.load(path, Music.class);
             }
-            // unknown extensions are skipped silently — AT-021 owns the registry.
+
         }
     }
 
-    /** Pump async loading and return true once every queued asset is ready. */
     public boolean loadingFinished() {
         return manager.update();
     }

@@ -2,10 +2,6 @@ package com.ashenthrone.characters;
 
 import com.ashenthrone.strategy.AttackStrategy;
 
-/**
- * Fluent builder for Hero.
- * Usage: new HeroBuilder().name("Kael").hp(120).attack(18).defense(12).speed(10).build()
- */
 public class HeroBuilder {
 
     private final Hero hero;
@@ -40,7 +36,6 @@ public class HeroBuilder {
         return this;
     }
 
-    /** Assigns the hero's default {@link AttackStrategy} (AT-008). */
     public HeroBuilder skill(AttackStrategy strategy) {
         hero.setCurrentStrategy(strategy);
         return this;

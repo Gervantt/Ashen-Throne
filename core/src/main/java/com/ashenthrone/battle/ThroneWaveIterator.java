@@ -6,10 +6,6 @@ import com.ashenthrone.factory.RealmFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Ashen Throne waves (AT-026):
- *   wave 1: The Hollow King (boss only).
- */
 public class ThroneWaveIterator implements WaveIterator {
 
     private static final int TOTAL_WAVES = 1;

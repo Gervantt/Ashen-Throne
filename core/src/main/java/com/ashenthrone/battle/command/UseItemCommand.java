@@ -6,10 +6,6 @@ import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.screens.ShopScreen;
 
-/**
- * Uses one Health Potion from the player's consumable inventory.
- * Restores 35% of max HP, with undo support for the command stack.
- */
 public class UseItemCommand implements BattleCommand {
 
     private final AbstractCharacter user;

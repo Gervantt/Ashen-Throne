@@ -4,12 +4,6 @@ import com.ashenthrone.observer.EventManager;
 import com.ashenthrone.observer.GameEvent;
 import com.ashenthrone.strategy.AttackStrategy;
 
-/**
- * Base class for all characters (hero and enemies).
- *
- * Uses the Template Method pattern: takeTurn() defines the fixed sequence,
- * subclasses override chooseAction() to provide player input or AI logic.
- */
 public abstract class AbstractCharacter {
 
     protected String name;
@@ -24,10 +18,7 @@ public abstract class AbstractCharacter {
 
     protected AbstractCharacter() {}
 
-    /**
-     * Template Method — the turn skeleton is fixed; subclasses fill in chooseAction().
-     * Final so nobody can break the sequence.
-     */
+
     public final void takeTurn() {
         beginTurn();
         applyStatusEffects();
@@ -36,63 +27,33 @@ public abstract class AbstractCharacter {
         endTurn();
     }
 
-    /** Reset per-turn flags (e.g. defending resets at the start of your next turn). */
     protected void beginTurn() {
         defending = false;
     }
 
-    /**
-     * Template hook for per-turn status effects. Status effects are not
-     * modelled on the character; {@link com.ashenthrone.battle.BattleEngine}
-     * runs {@link com.ashenthrone.battle.StatusEffectProcessor} over every
-     * combatant during the enemy phase, which keeps the work out of the
-     * Template Method.
-     */
+
     protected void applyStatusEffects() {
-        // Intentionally empty — see Javadoc.
+
     }
 
-    /** Subclass responsibility: decide what to do this turn. */
     protected abstract void chooseAction();
 
-    /**
-     * Template hook for action execution. Commands are dispatched by
-     * {@link com.ashenthrone.battle.BattleEngine#executePlayerAction} and
-     * enemy strategies fire inside {@link Enemy#chooseAction()}, so this
-     * method has no work to do — it exists to keep the Template Method
-     * sequence (begin → effects → choose → execute → end) explicit.
-     */
+
     protected void executeAction() {
-        // Intentionally empty — see Javadoc.
+
     }
 
-    /**
-     * Template hook for end-of-turn bookkeeping. Combat events (damage,
-     * death) are published from {@link #takeDamage} as they happen, so no
-     * per-turn observer notification is needed here.
-     */
+
     protected void endTurn() {
-        // Intentionally empty — see Javadoc.
+
     }
 
-    // ---- Combat helpers ----
 
-    /**
-     * Applies damage from an unknown source.
-     * Publishes DAMAGE_DEALT with {@code source = null}; prefer
-     * {@link #takeDamage(AbstractCharacter, int)} when the attacker is known.
-     */
     public void takeDamage(int amount) {
         takeDamage(null, amount);
     }
 
-    /**
-     * Applies damage from {@code source} and publishes the appropriate events.
-     * If HP reaches zero, CHARACTER_DIED is also published.
-     *
-     * @param source the attacking character, or {@code null} if unknown
-     * @param amount raw damage before defence reduction
-     */
+
     public void takeDamage(AbstractCharacter source, int amount) {
         if (amount < 0) throw new IllegalArgumentException("Damage amount must be non-negative, got: " + amount);
         int effective = defending ? amount / 2 : amount;
@@ -112,8 +73,6 @@ public abstract class AbstractCharacter {
         return hp > 0;
     }
 
-    // ---- Getters (virtual so Decorator can override) ----
-
     public String getName() { return name; }
     public int getHp() { return hp; }
     public int getMaxHp() { return maxHp; }
@@ -126,8 +85,6 @@ public abstract class AbstractCharacter {
     public void setCurrentStrategy(AttackStrategy strategy) {
         this.currentStrategy = strategy;
     }
-
-    // ---- Setters ----
 
     public void setHp(int hp) {
         if (hp < 0) throw new IllegalArgumentException("HP must be non-negative, got: " + hp);

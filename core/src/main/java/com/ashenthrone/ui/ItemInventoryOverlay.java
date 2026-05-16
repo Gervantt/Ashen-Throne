@@ -8,9 +8,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-/**
- * Small battle inventory panel shown when the player selects Item.
- */
 public class ItemInventoryOverlay extends UIComponent {
 
     private final GlyphLayout layout = new GlyphLayout();

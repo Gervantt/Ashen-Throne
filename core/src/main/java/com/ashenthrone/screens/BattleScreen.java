@@ -38,32 +38,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.List;
 
-/**
- * The battle screen hosts the battle loop and owns the State Machine (AT-006).
- *
- * It holds the current {@link BattleState} and delegates every frame's
- * handleInput / update / render calls to it. States transition by calling
- * {@link #setState(BattleState)}.
- *
- * All battle logic is now delegated to {@link BattleEngine} (AT-010).
- * BattleScreen is a pure coordinator — it routes input and rendering to the
- * current state, and routes commands and queries to the engine.
- *
- * Input is translated from raw libGDX events to game-level callbacks by
- * {@link BattleInputAdapter} (AT-012). States register as listeners via
- * {@link BattleInputAdapter#setListener} in their constructors.
- *
- * The battle HUD (AT-011) is a Composite UIComponent tree rendered every frame
- * after the current state so it always appears on top.
- *
- * Construction:
- *   new BattleScreen(AshenThroneGame.getInstance(), hero, enemies)
- * Transition in:
- *   AshenThroneGame.getInstance().setScreen(battleScreen)   // AT-013
- */
 public class BattleScreen extends BaseScreen {
 
-    // AT-015: layout constants for the static battle scene.
     public  static final int   SCREEN_W = 1280;
     public  static final int   SCREEN_H = 720;
     private static final float SPRITE_W = 190f;
@@ -89,31 +65,21 @@ public class BattleScreen extends BaseScreen {
     private SpriteBatch batch;
     private Viewport    viewport;
 
-    // AT-012: single adapter instance — registered with Gdx.input for the lifetime of this screen.
     private final BattleInputAdapter inputAdapter = new BattleInputAdapter();
 
-    // AT-009: observer listeners — kept as fields so other systems can query their state.
     private final VictoryChecker    victoryChecker = new VictoryChecker();
 
-    // AT-011: root HUD panel and direct reference to the action menu for state access.
     private Panel      battleHud;
     private ActionMenu actionMenu;
     private FloatingCombatText floatingText;
 
-    // AT-018/AT-019: sprite textures loaded for this battle, owned by the
-    // screen so they are disposed alongside it. Null when art is missing.
     private final java.util.List<Texture> battleTextures = new java.util.ArrayList<>();
 
-    /** Hero sprite — kept as a field so action-driven animation can be triggered. */
     private CharacterSprite heroSprite;
 
-    /** Enemy sprites in the same order as {@code engine.getEnemies()}. */
     private final java.util.List<CharacterSprite> enemySprites = new java.util.ArrayList<>();
 
-    /**
-     * Transient HUD components owned by the current state (e.g. the attack
-     * timing bar). Updated and rendered after the main HUD so they sit on top.
-     */
+
     private final java.util.List<UIComponent> overlays = new java.util.ArrayList<>();
 
     public BattleScreen(AshenThroneGame game, AbstractCharacter hero, List<Enemy> enemies) {
@@ -122,10 +88,8 @@ public class BattleScreen extends BaseScreen {
         if (hero == null)    throw new IllegalArgumentException("hero must not be null");
         if (enemies == null) throw new IllegalArgumentException("enemies must not be null");
         this.engine = new BattleEngine();
-        engine.startBattle(hero, enemies); // AT-010: engine owns hero + enemies
+        engine.startBattle(hero, enemies);
     }
-
-    // ---- Screen lifecycle ----
 
     @Override
     public void show() {
@@ -133,7 +97,6 @@ public class BattleScreen extends BaseScreen {
         viewport = new FitViewport(SCREEN_W, SCREEN_H);
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
-        // AT-009: reset and re-register observers for this battle.
         EventManager em = EventManager.getInstance();
         em.clearAll();
 
@@ -150,24 +113,19 @@ public class BattleScreen extends BaseScreen {
         em.subscribe(EventType.CHARACTER_DIED, victoryChecker);
         em.subscribe(EventType.BATTLE_END,     victoryChecker);
 
-        // AT-011: build the Composite HUD tree.
         buildHud();
 
         em.subscribe(EventType.DAMAGE_DEALT, floatingText);
         em.subscribe(EventType.ITEM_USED, floatingText);
 
-        // AT-012: register the adapter once; states swap the listener via setListener().
         inputAdapter.setEnemyCount(engine.getEnemies().size());
         inputAdapter.setEnemyHitTester(this::enemyAtScreenPos);
         Gdx.input.setInputProcessor(inputAdapter);
 
         currentState = new PlayerTurnState(this);
 
-        // AT-021: choose music based on whether the wave includes the final boss.
         AudioManager.getInstance().playMusic(hasBoss() ? "boss_theme" : "battle_theme");
     }
-
-    /** True if any enemy in this wave is The Hollow King — switches to boss theme. */
     private boolean hasBoss() {
         for (Enemy e : engine.getEnemies()) {
             if (e != null && "HollowKing".equals(e.getType())) return true;
@@ -175,27 +133,10 @@ public class BattleScreen extends BaseScreen {
         return false;
     }
 
-    /**
-     * Constructs the battle HUD as a Composite UIComponent tree (AT-011, AT-015).
-     *
-     * Layout (1280×720):
-     *   - Background (fullscreen, behind everything)
-     *   - Hero sprite + HealthBar at left, ~20% from edge
-     *   - Enemy sprites + HealthBars at right, evenly spaced
-     *   - Turn indicator centered at the top
-     *   - Battle log at bottom-left
-     *   - Action menu at bottom-center
-     *
-     * Sprites are placeholder rectangles until AT-018/019/021 supply textures.
-     */
     private void buildHud() {
         battleHud = new Panel(0, 0, SCREEN_W, SCREEN_H);
 
-        // Realm-specific background texture (AT-019/AT-021). Null path → flat fill.
         battleHud.addChild(new BattleBackground(realmBackgroundPath(), 0, 0, SCREEN_W, SCREEN_H));
-
-        // Hero — left, 20% from edge. Sprite sheet has 4 horizontal frames:
-        // idle = frame 0, attack/skill cycles 0→3 over ~0.45s.
         float heroY = heroSpriteY();
         float heroSpriteX = HERO_CENTER_X - SPRITE_W / 2f;
         Texture heroTex = loadSprite("images/heroes/hero_"
@@ -214,8 +155,6 @@ public class BattleScreen extends BaseScreen {
             floatingText.register(GameSession.getInstance().getHero(), HERO_CENTER_X, heroY + SPRITE_H);
         }
 
-        // Enemies — right half, evenly spaced. Area widened so larger sprites
-        // (200×260) don't overlap when there are three enemies on screen.
         List<Enemy> enemies = engine.getEnemies();
         int n = enemies.size();
         enemySprites.clear();
@@ -228,9 +167,7 @@ public class BattleScreen extends BaseScreen {
             float ex = slotCenter - enemyW / 2f;
             Texture enemyTex = loadSprite("images/enemies/enemy_"
                     + toSnakeCase(enemy.getType()) + ".png");
-            // Frame count is sheet-specific (see frameCountFor): some enemies
-            // have 4 frames, others up to 11. Idle renders frame 0; attack
-            // cycles 0→N-1 over ACTION_DURATION.
+
             CharacterSprite es = new CharacterSprite(enemy,
                     new Color(0.75f, 0.30f, 0.30f, 1f), enemyTex, frameCountFor(enemyTex),
                     ex, enemyY, enemyW, enemyH);
@@ -243,18 +180,15 @@ public class BattleScreen extends BaseScreen {
             floatingText.register(enemy, slotCenter, floatingTextHeadY(enemyY, enemyH));
         }
 
-        // Turn indicator at top center.
         float tiW = 280f, tiH = 36f;
         battleHud.addChild(new TurnIndicator(this::turnLabel,
                 (SCREEN_W - tiW) / 2f, SCREEN_H - tiH - 16f, tiW, tiH));
 
-        // Action menu — bottom-center.
         actionMenu = new ActionMenu(440, 10, 400, 80);
         battleHud.addChild(actionMenu);
         battleHud.addChild(floatingText);
     }
 
-    /** Maps the current state class to a human-readable turn label. */
     private String turnLabel() {
         if (currentState == null) return "";
         String name = currentState.getClass().getSimpleName();
@@ -268,11 +202,7 @@ public class BattleScreen extends BaseScreen {
         };
     }
 
-    /**
-     * Called every frame by libGDX.
-     * Clears the screen, then lets the current state handle input, update, and render,
-     * followed by the HUD composite tree which always renders on top.
-     */
+
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0.05f, 0.05f, 0.1f, 1f);
@@ -284,15 +214,15 @@ public class BattleScreen extends BaseScreen {
         currentState.handleInput();
         currentState.update(delta);
         currentState.render(batch);
-        // AT-011: render the HUD tree after state content so it appears on top.
+
         battleHud.update(delta);
         battleHud.render(batch);
-        // State-owned overlays (e.g. the attack timing bar) sit above the HUD.
+
         for (UIComponent o : overlays) {
             o.update(delta);
             o.render(batch);
         }
-        // AT-023: pause menu and other modal overlays render last, on top of HUD.
+
         currentState.renderOverlay(batch);
         batch.end();
     }
@@ -320,9 +250,6 @@ public class BattleScreen extends BaseScreen {
         Gdx.input.setInputProcessor(null);
     }
 
-    // ---- State machine ----
-
-    /** Map the active realm in {@link GameSession} to its factory's background path. */
     private static String realmBackgroundPath() {
         String key = GameSession.getInstance().getCurrentRealm();
         if (key == null) return null;
@@ -335,11 +262,6 @@ public class BattleScreen extends BaseScreen {
         return factory != null ? factory.createBackground() : null;
     }
 
-    /**
-     * Loads a sprite texture if the file exists; returns null otherwise so
-     * {@link CharacterSprite} can degrade to a colored rectangle. The texture
-     * is registered for disposal alongside this screen.
-     */
     private Texture loadSprite(String path) {
         try {
             com.badlogic.gdx.files.FileHandle fh = Gdx.files.internal(path);
@@ -353,25 +275,19 @@ public class BattleScreen extends BaseScreen {
         }
     }
 
-    /**
-     * Returns the horizontal frame count for a sprite sheet. Most sheets use
-     * square frames, in which case {@code width / height} gives the count.
-     * A few enemy sheets have non-square frames and need explicit entries.
-     */
     private static int frameCountFor(Texture tex) {
         if (tex == null) return 1;
         int w = tex.getWidth();
         int h = tex.getHeight();
-        // Explicit overrides for sheets where frames are not square.
-        if (w == 2640 && h == 192) return 11; // hollow_king (240×192)
-        if (w == 320  && h == 160) return 4;  // hollow_wolf  (80×160)
-        if (w == 1008 && h == 80)  return 7;  // treant       (144×80)
-        // Default: assume square frames.
+
+        if (w == 2640 && h == 192) return 11;
+        if (w == 320  && h == 160) return 4;
+        if (w == 1008 && h == 80)  return 7;
+
         if (h > 0 && w % h == 0) return w / h;
         return 1;
     }
 
-    /** "HollowKing" → "hollow_king", "Wraith" → "wraith". */
     private static String toSnakeCase(String camel) {
         if (camel == null || camel.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
@@ -383,11 +299,6 @@ public class BattleScreen extends BaseScreen {
         return sb.toString();
     }
 
-    /**
-     * Maps a window-space click to an enemy index using the same slot layout
-     * as {@link #buildHud()}. Returns -1 if the click missed every sprite.
-     * Wired into {@link BattleInputAdapter#setEnemyHitTester} (AT-012/AT-015).
-     */
     private int enemyAtScreenPos(int screenX, int screenY) {
         if (viewport == null) return -1;
         Vector3 v = new Vector3(screenX, screenY, 0f);
@@ -467,44 +378,31 @@ public class BattleScreen extends BaseScreen {
         return Math.min(spriteY + spriteH, SCREEN_H - 116f);
     }
 
-    /** Transitions to a new state immediately (takes effect next frame). */
     public void setState(BattleState state) {
         this.currentState = state;
     }
 
-    /** Current state — used by states that suspend themselves (AT-023 pause). */
     public BattleState getCurrentState() {
         return currentState;
     }
 
-    // ---- Command delegation (AT-007 + AT-010) ----
-
-    /** Executes a command through the engine and records it for undo. */
     public void executeCommand(BattleCommand command) {
         engine.executePlayerAction(command);
     }
 
-    /** Adds a transient overlay component drawn above the HUD. */
     public void addOverlay(UIComponent overlay) {
         if (overlay != null && !overlays.contains(overlay)) overlays.add(overlay);
     }
 
-    /** Removes a previously-added overlay; safe to call if it isn't present. */
     public void removeOverlay(UIComponent overlay) {
         overlays.remove(overlay);
     }
 
-    /** Trigger the hero's 4-frame action animation. No-op if no sprite sheet was loaded. */
     public void playHeroActionAnimation() {
         if (heroSprite != null) heroSprite.playActionAnimation();
     }
 
-    /**
-     * Trigger the 4-frame attack animation on every still-alive enemy.
-     * Called by {@link com.ashenthrone.battle.state.EnemyTurnState} after the
-     * engine has run all enemy actions, so the swing visuals overlap the
-     * {@link com.ashenthrone.battle.state.AnimationState} dwell time.
-     */
+
     public void playEnemyActionAnimations() {
         List<Enemy> enemies = engine.getEnemies();
         for (int i = 0; i < enemySprites.size() && i < enemies.size(); i++) {
@@ -514,31 +412,23 @@ public class BattleScreen extends BaseScreen {
         }
     }
 
-    /** Undoes the most recent command. No-op if history is empty. */
     public void undoLastCommand() {
         engine.undoLastCommand();
     }
 
-    /** True if there is at least one command that can be undone. */
     public boolean canUndo() {
         return engine.canUndo();
     }
-
-    // ---- Accessors for states ----
 
     public AbstractCharacter getHero() { return engine.getHero(); }
     public List<Enemy> getEnemies() { return engine.getEnemies(); }
     public AshenThroneGame getGame()  { return game; }
 
-    /** Exposes the engine so states can call executeEnemyTurns(), isOver(), getResult(). */
     public BattleEngine getBattleEngine() { return engine; }
 
-    // AT-009: expose observers so screen flow (AT-013) can read them.
     public VictoryChecker    getVictoryChecker() { return victoryChecker; }
 
-    // AT-011: expose action menu so PlayerTurnState can update the selected button.
     public ActionMenu getActionMenu() { return actionMenu; }
 
-    // AT-012: expose adapter so states can register as listener in their constructor.
     public BattleInputAdapter getInputAdapter() { return inputAdapter; }
 }

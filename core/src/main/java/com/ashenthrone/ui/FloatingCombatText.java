@@ -13,9 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Floating damage / item feedback anchored to character positions.
- */
 public class FloatingCombatText extends UIComponent implements EventListener {
 
     private static final float LIFETIME = 1.05f;

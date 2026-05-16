@@ -5,13 +5,6 @@ import com.ashenthrone.characters.AbstractCharacter;
 
 import java.util.List;
 
-/**
- * Single-target arcane strike that bypasses half the target's defence.
- *
- * Damage formula: max(1, attacker.attack − target.defense / 2)
- * Effective against heavily-armoured enemies but no better than
- * PhysicalAttack against targets with low defence.
- */
 public class MagicAttack implements AttackStrategy {
 
     @Override

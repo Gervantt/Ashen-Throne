@@ -5,12 +5,6 @@ import com.ashenthrone.characters.AbstractCharacter;
 
 import java.util.List;
 
-/**
- * Single-target physical strike.
- *
- * Damage formula: max(1, attacker.attack − target.defense)
- * Defense is applied in full, making this the weakest option against armoured foes.
- */
 public class PhysicalAttack implements AttackStrategy {
 
     @Override

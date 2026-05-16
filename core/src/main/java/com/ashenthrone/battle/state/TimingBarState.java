@@ -9,21 +9,8 @@ import com.ashenthrone.screens.BattleScreen;
 import com.ashenthrone.ui.TimingBar;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-/**
- * Transient state shown after the player confirms an Attack.
- *
- * Renders a horizontal {@link TimingBar} whose cursor sweeps left-right.
- * Pressing Confirm (Enter/Space) stops the cursor; the zone it lands on
- * determines the damage multiplier (critical/great/weak/miss). The
- * resulting {@link AttackCommand} is executed and we transition to
- * {@link AnimationState} → {@link EnemyTurnState}/{@link VictoryState}.
- *
- * Z/Escape cancels the attempt and returns to PlayerTurnState so the
- * player can re-select.
- */
 public class TimingBarState implements BattleState, BattleInputAdapter.ActionListener {
 
-    /** Seconds the result label stays visible before the attack actually executes. */
     private static final float RESULT_DWELL = 0.35f;
 
     private final BattleScreen screen;
@@ -36,7 +23,7 @@ public class TimingBarState implements BattleState, BattleInputAdapter.ActionLis
     public TimingBarState(BattleScreen screen, Enemy target) {
         this.screen = screen;
         this.target = target;
-        // Center the bar above the action menu.
+
         float w = 480f, h = 24f;
         float bx = (BattleScreen.SCREEN_W - w) / 2f;
         float by = 110f;
@@ -44,8 +31,6 @@ public class TimingBarState implements BattleState, BattleInputAdapter.ActionLis
         screen.addOverlay(bar);
         screen.getInputAdapter().setListener(this);
     }
-
-    // ---- BattleState ----
 
     @Override public void handleInput() {}
 
@@ -62,13 +47,11 @@ public class TimingBarState implements BattleState, BattleInputAdapter.ActionLis
 
     @Override
     public void render(SpriteBatch batch) {
-        // Bar lives on the HUD overlay; nothing to draw here.
+
     }
 
-    // ---- Input ----
-
-    @Override public void onActionSelected(ActionType type) { /* locked while timing */ }
-    @Override public void onTargetSelected(int enemyIndex)  { /* locked */ }
+    @Override public void onActionSelected(ActionType type) {  }
+    @Override public void onTargetSelected(int enemyIndex)  {  }
 
     @Override
     public void onConfirm() {
@@ -77,7 +60,6 @@ public class TimingBarState implements BattleState, BattleInputAdapter.ActionLis
         }
     }
 
-    /** Z — cancel the attempt and return to action selection. */
     @Override
     public void onCancel() {
         screen.removeOverlay(bar);
@@ -89,8 +71,6 @@ public class TimingBarState implements BattleState, BattleInputAdapter.ActionLis
         if (screen.getCurrentState() != this) return;
         screen.setState(new PauseState(screen, this));
     }
-
-    // ---- Resolution ----
 
     private void resolveAndExit() {
         resolved = true;

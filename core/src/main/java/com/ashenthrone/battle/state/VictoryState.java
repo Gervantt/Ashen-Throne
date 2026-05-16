@@ -13,19 +13,6 @@ import com.ashenthrone.transition.ScreenType;
 import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-/**
- * Terminal state reached when all enemies in a wave have been defeated.
- *
- * <p>On entry: grants a per-encounter gold reward and publishes
- * {@code BATTLE_END:VICTORY}.
- *
- * <p>On confirm (AT-024 dispatch):
- * <ul>
- *   <li>Throne realm cleared      → {@link EndGameScreen} (game complete).</li>
- *   <li>Last wave of other realm  → {@link VictoryScreen} in "realm complete" mode.</li>
- *   <li>Intermediate wave         → {@link VictoryScreen} in "next wave" mode.</li>
- * </ul>
- */
 public class VictoryState implements BattleState, BattleInputAdapter.ActionListener {
 
     private final BattleScreen screen;
@@ -34,15 +21,13 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
     public VictoryState(BattleScreen screen) {
         this.screen = screen;
         this.rewardGranted = false;
-        // AT-012: register as the active input listener for this state.
+
         screen.getInputAdapter().setListener(this);
     }
 
-    // ---- BattleState ----
-
     @Override
     public void handleInput() {
-        // Input arrives via ActionListener callbacks — no polling needed.
+
     }
 
     @Override
@@ -60,10 +45,8 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
 
     @Override
     public void render(SpriteBatch batch) {
-        // Visual handled by VictoryScreen on confirm.
-    }
 
-    // ---- BattleInputAdapter.ActionListener ----
+    }
 
     @Override
     public void onConfirm() {
@@ -94,21 +77,17 @@ public class VictoryState implements BattleState, BattleInputAdapter.ActionListe
         return min + com.badlogic.gdx.math.MathUtils.random(max - min);
     }
 
-    // ---- Navigation (AT-024) ----
-
     private void proceed() {
         GameSession session = GameSession.getInstance();
         String realm = session.getCurrentRealm();
         WaveIterator iterator = session.getWaveIterator();
         TransitionManager tm = TransitionManager.getInstance();
 
-        // Legacy/sandbox flow: no active realm/iterator — keep old single-screen behaviour.
         if (realm == null || iterator == null) {
             tm.goToVictory(screen.getHero(), false);
             return;
         }
 
-        // AT-026: the iterator decides whether the realm is cleared.
         boolean isLastWave = !iterator.hasNext();
 
         if (isLastWave && RealmSelectScreen.KEY_THRONE.equals(realm)) {

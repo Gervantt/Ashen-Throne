@@ -3,10 +3,6 @@ package com.ashenthrone.equipment;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.CharacterDecorator;
 
-/**
- * Equipment decorator — Cursed Ring.
- * Grants +8 defense at the cost of -2 attack.
- */
 public class CursedRing extends CharacterDecorator {
 
     private static final int DEFENSE_BONUS = 8;

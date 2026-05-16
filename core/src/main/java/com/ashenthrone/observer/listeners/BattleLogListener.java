@@ -8,17 +8,8 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
-/**
- * Appends human-readable lines to a scrolling battle log.
- *
- * Subscribes to all four event types. The log is capped at
- * {@value #MAX_LINES} entries; oldest entries are dropped first.
- *
- * AT-011 UIComponent (BattleLog) will read {@link #getLines()} to render.
- */
 public class BattleLogListener implements EventListener {
 
-    /** Maximum number of log lines retained (matches UI spec in AT-011). */
     public static final int MAX_LINES = 6;
 
     private final Deque<String> lines = new ArrayDeque<>();
@@ -46,7 +37,6 @@ public class BattleLogListener implements EventListener {
         append(line);
     }
 
-    /** Appends a line, evicting the oldest entry when the cap is reached. */
     private void append(String line) {
         if (lines.size() >= MAX_LINES) {
             lines.pollFirst();
@@ -54,12 +44,10 @@ public class BattleLogListener implements EventListener {
         lines.addLast(line);
     }
 
-    /** Returns the current log lines in oldest-to-newest order (unmodifiable). */
     public List<String> getLines() {
         return Collections.unmodifiableList(lines.stream().toList());
     }
 
-    /** Clears the log; call when starting a new battle. */
     public void clear() {
         lines.clear();
     }

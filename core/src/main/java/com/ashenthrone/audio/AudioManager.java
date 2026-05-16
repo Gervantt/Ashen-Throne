@@ -8,25 +8,6 @@ import com.badlogic.gdx.files.FileHandle;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Singleton audio facade (AT-021).
- *
- * Maps logical keys (e.g. {@code "main_theme"}, {@code "sword_hit"}) to file
- * paths and plays them through libGDX. Missing or unloadable assets degrade
- * gracefully: a one-time warning is logged and subsequent calls become no-ops,
- * so the game still runs in development before audio assets are committed.
- *
- * <p>Music keys (looped, exclusive — only one plays at a time):
- * {@code main_theme}, {@code battle_theme}, {@code boss_theme},
- * {@code victory_sting}, {@code defeat_sting}.
- *
- * <p>SFX keys (one-shot): {@code sword_hit}, {@code fireball},
- * {@code heal_cast}, {@code enemy_death}, {@code hero_hurt},
- * {@code transition_whoosh}, {@code purchase_sound}.
- *
- * <p>Stings ({@code victory_sting}, {@code defeat_sting}) are registered as
- * non-looping music for one-shot fanfares, per AT-021 spec.
- */
 public class AudioManager {
 
     private static AudioManager instance;
@@ -37,10 +18,8 @@ public class AudioManager {
     private final Map<String, Music> musicCache = new HashMap<>();
     private final Map<String, Sound> sfxCache   = new HashMap<>();
 
-    /** Keys that should not loop (one-shot stings). */
     private final java.util.Set<String> nonLoopingMusic = new java.util.HashSet<>();
 
-    /** Keys that previously failed to load — never retried. */
     private final java.util.Set<String> failed = new java.util.HashSet<>();
 
     private Music  currentMusic;
@@ -61,18 +40,16 @@ public class AudioManager {
     }
 
     private void registerDefaults() {
-        // Music (looped).
+
         musicPaths.put("main_theme",    "audio/music/main_theme.mp3");
         musicPaths.put("battle_theme",  "audio/music/battle_theme.mp3");
         musicPaths.put("boss_theme",    "audio/music/boss_theme.ogg");
 
-        // Stings — registered as music but played non-looped.
         musicPaths.put("victory_sting", "audio/music/victory_sting.wav");
         musicPaths.put("defeat_sting",  "audio/music/defeat_sting.mp3");
         nonLoopingMusic.add("victory_sting");
         nonLoopingMusic.add("defeat_sting");
 
-        // SFX (one-shot).
         sfxPaths.put("sword_hit",         "audio/sfx/sword_hit.mp3");
         sfxPaths.put("fireball",          "audio/sfx/fireball.mp3");
         sfxPaths.put("heal_cast",         "audio/sfx/heal_cast.mp3");
@@ -82,11 +59,6 @@ public class AudioManager {
         sfxPaths.put("purchase_sound",    "audio/sfx/purchase_sound.mp3");
     }
 
-    /**
-     * Start the track registered under {@code key}. If a different track is
-     * already playing it is stopped first; calling with the currently playing
-     * key is a no-op so screens can call this on every {@code show()} safely.
-     */
     public void playMusic(String key) {
         if (key == null) return;
         if (key.equals(currentMusicKey) && currentMusic != null && currentMusic.isPlaying()) {
@@ -102,7 +74,6 @@ public class AudioManager {
         currentMusicKey = key;
     }
 
-    /** Stop whatever music is currently playing. */
     public void stopMusic() {
         if (currentMusic != null) {
             currentMusic.stop();
@@ -111,7 +82,6 @@ public class AudioManager {
         currentMusicKey = null;
     }
 
-    /** Fire a one-shot sound effect registered under {@code key}. */
     public void playSFX(String key) {
         if (key == null) return;
         Sound s = loadSound(key);
@@ -133,7 +103,6 @@ public class AudioManager {
     public float getMusicVolume() { return musicVolume; }
     public float getSFXVolume()   { return sfxVolume;   }
 
-    /** Free all cached handles. Call from the game's {@code dispose()}. */
     public void dispose() {
         stopMusic();
         for (Music m : musicCache.values()) m.dispose();

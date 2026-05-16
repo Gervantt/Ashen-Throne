@@ -30,28 +30,11 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Realm tower / selection screen (AT-019).
- *
- * Tower-style vertical layout with three sections, top to bottom:
- *   1. The Abyss        — 2 waves
- *   2. Cursed Forest    — 2 waves
- *   3. Ashen Throne     — 1 wave (Hollow King)
- *
- * Each section is a full-width tile showing the realm name, wave summary, and
- * a status badge. Selecting a section sets the current realm on {@link GameSession},
- * builds wave 1 via the matching
- * {@link RealmFactory}, and launches a {@link BattleScreen}. Multi-wave
- * progression and reward screens are wired in AT-024.
- *
- * A progress bar at the bottom reads "X/3 Realms Conquered".
- */
 public class RealmSelectScreen extends BaseScreen {
 
     private static final int SCREEN_W = 1280;
     private static final int SCREEN_H = 720;
 
-    // Realm keys also used by GameSession.completedRealms.
     public static final String KEY_ABYSS  = "abyss";
     public static final String KEY_FOREST = "forest";
     public static final String KEY_THRONE = "throne";
@@ -68,7 +51,6 @@ public class RealmSelectScreen extends BaseScreen {
                     new Color(0.25f, 0.30f, 0.55f, 1f)),
     };
 
-    // ---- Layout constants ----
     private static final float SECTION_W = 880f;
     private static final float SECTION_H = 150f;
     private static final float SECTION_GAP = 24f;
@@ -115,11 +97,8 @@ public class RealmSelectScreen extends BaseScreen {
         pixel = new Texture(pm);
         pm.dispose();
 
-        // Main theme persists across menu/shop/settings/hero-select/tower
-        // (idempotent — won't restart if already playing).
         AudioManager.getInstance().playMusic("main_theme");
 
-        // Default the cursor to the highest-tier unfinished realm.
         hovered = defaultHoverIndex();
 
         Gdx.input.setInputProcessor(new InputAdapter() {
@@ -195,7 +174,6 @@ public class RealmSelectScreen extends BaseScreen {
             boolean cleared  = GameSession.getInstance().hasCompletedRealm(r.key);
             boolean hot      = (i == hovered);
 
-            // Border tint communicates state at a glance.
             Color border;
             if (hot)          border = new Color(0.95f, 0.75f, 0.35f, 1f);
             else if (cleared) border = new Color(0.45f, 0.65f, 0.40f, 1f);
@@ -208,15 +186,12 @@ public class RealmSelectScreen extends BaseScreen {
             batch.draw(pixel, SECTION_X, y, SECTION_W, SECTION_H);
             batch.setColor(Color.WHITE);
 
-            // Realm name.
             realmFont.setColor(new Color(1f, 0.95f, 0.75f, 1f));
             realmFont.draw(batch, r.name, SECTION_X + 30f, y + SECTION_H - 30f);
 
-            // Wave summary.
             bodyFont.setColor(new Color(0.92f, 0.88f, 0.78f, 1f));
             bodyFont.draw(batch, r.waveSummary, SECTION_X + 30f, y + SECTION_H - 75f);
 
-            // Status badge: CLEARED / READY.
             String status;
             Color statusColor;
             if (cleared) {
@@ -242,13 +217,12 @@ public class RealmSelectScreen extends BaseScreen {
         float bx = (SCREEN_W - PROGRESS_BAR_W) / 2f;
         float by = 60f;
 
-        // Frame.
         batch.setColor(new Color(0.40f, 0.30f, 0.18f, 1f));
         batch.draw(pixel, bx - 3, by - 3, PROGRESS_BAR_W + 6, PROGRESS_BAR_H + 6);
-        // Track.
+
         batch.setColor(new Color(0.10f, 0.08f, 0.10f, 1f));
         batch.draw(pixel, bx, by, PROGRESS_BAR_W, PROGRESS_BAR_H);
-        // Fill.
+
         float fillW = PROGRESS_BAR_W * cleared / (float) REALMS.length;
         batch.setColor(new Color(0.85f, 0.7f, 0.3f, 1f));
         batch.draw(pixel, bx, by, fillW, PROGRESS_BAR_H);
@@ -277,11 +251,8 @@ public class RealmSelectScreen extends BaseScreen {
                 r[1] + (r[3] + layout.height) / 2f);
     }
 
-    // ---- Hit testing ----
-
-    /** Returns the y-coordinate of section i (i==0 is the top tile). */
     private float sectionY(int i) {
-        // Sections stack top-to-bottom but we lay them out from a top anchor.
+
         float topY = SECTIONS_BOTTOM_Y + REALMS.length * SECTION_H + (REALMS.length - 1) * SECTION_GAP;
         return topY - (i + 1) * SECTION_H - i * SECTION_GAP;
     }
@@ -318,8 +289,6 @@ public class RealmSelectScreen extends BaseScreen {
         if (viewport != null) viewport.update(width, height, true);
     }
 
-    // ---- Actions ----
-
     private void activate(int index) {
         RealmDef r = REALMS[index];
         GameSession session = GameSession.getInstance();
@@ -336,7 +305,6 @@ public class RealmSelectScreen extends BaseScreen {
         AbstractCharacter equipped = ShopScreen.EquipmentApplier.apply(
                 hero, session.getEquippedItems());
 
-        // AT-026: spin up the realm's WaveIterator and pull wave 1 from it.
         WaveIterator iterator = factoryFor(r.key).createWaveIterator();
         session.setWaveIterator(iterator);
         List<Enemy> wave = iterator.next();
@@ -348,7 +316,6 @@ public class RealmSelectScreen extends BaseScreen {
         TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }
 
-    /** Total waves in a realm (AT-024 flow control). */
     public static int totalWaves(String realmKey) {
         return switch (realmKey) {
             case KEY_ABYSS, KEY_FOREST -> 2;
@@ -357,10 +324,7 @@ public class RealmSelectScreen extends BaseScreen {
         };
     }
 
-    /**
-     * Wave compositions per AT-019 spec. Wave 0 is wave 1 in spec terms.
-     * AT-026 (WaveIterator) will replace this once the iterator pattern lands.
-     */
+
     public static List<Enemy> buildWave(String realmKey, int waveIndex) {
         RealmFactory factory = factoryFor(realmKey);
         List<Enemy> enemies = new ArrayList<>();
@@ -402,7 +366,7 @@ public class RealmSelectScreen extends BaseScreen {
     }
 
     private static int defaultHoverIndex() {
-        // Highest-tier (top-most) unfinished realm.
+
         for (int i = 0; i < REALMS.length; i++) {
             if (!GameSession.getInstance().hasCompletedRealm(REALMS[i].key)) {
                 return i;

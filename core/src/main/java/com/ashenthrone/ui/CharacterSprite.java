@@ -5,18 +5,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-/**
- * Battle-scene portrait for a single character (AT-015, AT-018/AT-019).
- *
- * <p>Supports horizontal sprite sheets ({@code frameCount > 1}). Idle state
- * renders frame 0 only; calling {@link #playActionAnimation()} cycles through
- * every frame over {@link #ACTION_DURATION} seconds, then returns to idle.
- *
- * <p>Falls back to a flat tinted rectangle when no texture was supplied.
- */
 public class CharacterSprite extends UIComponent {
 
-    /** Total animation duration for one full attack/skill cycle (seconds). */
     private static final float ACTION_DURATION = 0.45f;
 
     private final AbstractCharacter character;
@@ -27,24 +17,17 @@ public class CharacterSprite extends UIComponent {
     private boolean animating;
     private float   elapsed;
 
-    /** Colored-rectangle constructor — no texture, no animation. */
     public CharacterSprite(AbstractCharacter character, Color tint,
                            float x, float y, float width, float height) {
         this(character, tint, null, 1, x, y, width, height);
     }
 
-    /** Texture-backed, single-frame constructor. */
     public CharacterSprite(AbstractCharacter character, Color tint, Texture texture,
                            float x, float y, float width, float height) {
         this(character, tint, texture, 1, x, y, width, height);
     }
 
-    /**
-     * Full constructor.
-     *
-     * @param frameCount horizontal frame count in the sprite sheet (≥ 1).
-     *                   1 means the whole texture is a single still image.
-     */
+
     public CharacterSprite(AbstractCharacter character, Color tint, Texture texture,
                            int frameCount,
                            float x, float y, float width, float height) {
@@ -58,10 +41,7 @@ public class CharacterSprite extends UIComponent {
         this.height = height;
     }
 
-    /**
-     * Kick off the action animation (cycles through all frames once).
-     * Calling again mid-animation restarts from frame 0.
-     */
+
     public void playActionAnimation() {
         if (frameCount <= 1 || texture == null) return;
         animating = true;
@@ -82,7 +62,7 @@ public class CharacterSprite extends UIComponent {
     @Override
     public void render(SpriteBatch batch) {
         if (!visible) return;
-        if (character.getHp() <= 0) return; // dead characters vanish.
+        if (character.getHp() <= 0) return;
 
         if (texture != null) {
             batch.setColor(Color.WHITE);
@@ -100,10 +80,8 @@ public class CharacterSprite extends UIComponent {
         }
     }
 
-    /** Which sheet column should be drawn this frame. */
     private int currentFrame() {
         if (!animating || frameCount <= 1) return 0;
-        // Progress through frames 0 .. frameCount-1 evenly over ACTION_DURATION.
         int idx = (int) (elapsed / (ACTION_DURATION / frameCount));
         if (idx >= frameCount) idx = frameCount - 1;
         return idx;
