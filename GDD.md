@@ -191,8 +191,6 @@ The game implements **16 Gang of Four design patterns** as part of the SDP cours
 | 15 | Mediator | `TransitionManager` |
 | 16 | Iterator | `WaveIterator` per realm |
 
-See `CLAUDE.md` for full task breakdown (AT-001 — AT-026).
-
 ---
 
 ## 11. Required Diagrams
