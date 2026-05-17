@@ -118,21 +118,21 @@ ashen-throne/
 
 | Task | Pattern(s) | Status |
 |------|-----------|--------|
-| AT-001 | Singleton | Done |
-| AT-002 | Builder, Template Method | Done |
-| AT-003 | Prototype | Done |
-| AT-004 | Abstract Factory, Factory Method | Done |
-| AT-005 | Decorator | Done |
-| AT-006 | State | Planned |
-| AT-007 | Command | Planned |
-| AT-008 | Strategy | Planned |
-| AT-009 | Observer | Planned |
-| AT-010 | Facade | Planned |
-| AT-011 | Composite | Planned |
-| AT-012 | Adapter | Planned |
-| AT-013 | Singleton (Screens) | Planned |
-| AT-014 | Singleton (Audio) | Planned |
-| AT-015 | Composite (Visual Polish) | Planned |
+| AT-001 | Singleton | ✅ |
+| AT-002 | Builder, Template Method | ✅ |
+| AT-003 | Prototype | ✅ |
+| AT-004 | Abstract Factory, Factory Method | ✅ |
+| AT-005 | Decorator | ✅ |
+| AT-006 | State | ✅ |
+| AT-007 | Command | ✅ |
+| AT-008 | Strategy | ✅ |
+| AT-009 | Observer | ✅ |
+| AT-010 | Facade | ✅ |
+| AT-011 | Composite | ✅ |
+| AT-012 | Adapter | ✅ |
+| AT-013 | Singleton (Screens) | ✅ |
+| AT-014 | Singleton (Audio) | ✅ |
+| AT-015 | Composite (Visual Polish) | ✅ |
 
 ---
 
