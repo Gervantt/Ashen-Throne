@@ -98,13 +98,13 @@ ashen-throne/
 │       │   └── prototype/    # EnemyRegistry (Prototype pattern)
 │       ├── factory/          # RealmFactory, realm factories, EnemySpawner (Abstract Factory + Factory Method)
 │       ├── equipment/        # FireAmulet, CursedRing, ShadowBlade (Decorator pattern)
-│       ├── battle/           # (planned) BattleEngine, states, commands
-│       ├── strategy/         # (planned) AttackStrategy implementations
-│       ├── screens/          # (planned) MainMenuScreen, BattleScreen, etc.
-│       ├── observer/         # (planned) EventManager
-│       ├── ui/               # (planned) UIComponent composite tree
-│       ├── input/            # (planned) BattleInputAdapter
-│       └── audio/            # (planned) AudioManager
+│       ├── battle/           # ✅ BattleEngine, states, commands
+│       ├── strategy/         # ✅ AttackStrategy implementations
+│       ├── screens/          # ✅ MainMenuScreen, BattleScreen, etc.
+│       ├── observer/         # ✅ EventManager
+│       ├── ui/               # ✅ UIComponent composite tree
+│       ├── input/            # ✅ BattleInputAdapter
+│       └── audio/            # ✅ AudioManager
 ├── desktop/                  # Desktop launcher only (DesktopLauncher.java)
 ├── gradle/                   # Gradle wrapper files
 ├── build.gradle              # Root build config
@@ -146,3 +146,9 @@ Your JDK version is being detected incorrectly. The build uses `options.release 
 
 **Game window doesn't open**
 Make sure you're running `desktop:run`, not `core:run`. The `core` module has no launcher.
+
+---
+
+## Project board
+
+[ClickUp — Ashen Throne tasks](https://app.clickup.com/90182568641/v/li/901816972683)
