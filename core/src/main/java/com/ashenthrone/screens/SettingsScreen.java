@@ -17,18 +17,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-/**
- * Settings screen (AT-017).
- *
- * Two sections:
- *   1. Display — toggle between fullscreen and windowed (1280×720).
- *   2. Controls — read-only list of in-game key bindings.
- *
- * Display preference is persisted via libGDX {@link Preferences} under the
- * key {@code "fullscreen"}; the chosen mode is applied immediately and on
- * subsequent launches by reading the same pref at startup (callers that
- * boot the application can use {@link #applySavedDisplayMode()}).
- */
 public class SettingsScreen extends BaseScreen {
 
     private static final int SCREEN_W = 1280;
@@ -55,20 +43,23 @@ public class SettingsScreen extends BaseScreen {
 
     private boolean fullscreen;
 
-    // Three interactive buttons: Toggle Display, Apply, Back.
     private static final int BTN_TOGGLE = 0;
     private static final int BTN_BACK   = 1;
     private int hovered = BTN_TOGGLE;
+
+    private final float panelW = 760f;
+    private final float panelX = (SCREEN_W - panelW) / 2f;
+
+    private final Color goldTheme       = new Color(0.78f, 0.61f, 0.34f, 1f);
+    private final Color panelBg         = new Color(0.07f, 0.06f, 0.06f, 0.95f);
+    private final Color panelBorder     = new Color(0.28f, 0.24f, 0.18f, 1f);
+    private final Color textLight       = new Color(0.85f, 0.85f, 0.85f, 1f);
 
     public SettingsScreen(AshenThroneGame game) {
         super(game);
     }
 
-    /**
-     * Reads the persisted display mode and applies it. Safe to call before
-     * the first frame; should be invoked from {@code AshenThroneGame.create}
-     * once asset/window setup is done.
-     */
+
     public static void applySavedDisplayMode() {
         Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
         boolean fs = prefs.getBoolean(PREF_FULLSCREEN, false);
@@ -101,8 +92,6 @@ public class SettingsScreen extends BaseScreen {
         pixel = new Texture(pm);
         pm.dispose();
 
-        // Main theme persists across menu/shop/settings/hero-select/tower
-        // (idempotent — won't restart if already playing).
         AudioManager.getInstance().playMusic("main_theme");
 
         Preferences prefs = Gdx.app.getPreferences(PREFS_NAME);
@@ -152,63 +141,123 @@ public class SettingsScreen extends BaseScreen {
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0.06f, 0.04f, 0.08f, 1f);
+        Gdx.gl.glClearColor(0.05f, 0.04f, 0.05f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         viewport.apply();
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
-        titleFont.setColor(new Color(0.85f, 0.7f, 0.3f, 1f));
+        titleFont.setColor(goldTheme);
         layout.setText(titleFont, "SETTINGS");
-        titleFont.draw(batch, layout,
-                (SCREEN_W - layout.width) / 2f, SCREEN_H - 60f);
+        float titleX = (SCREEN_W - layout.width) / 2f;
+        float titleY = SCREEN_H - 60f;
+        titleFont.draw(batch, layout, titleX, titleY);
 
-        // ---- Display section ----
-        bodyFont.setColor(new Color(0.95f, 0.85f, 0.5f, 1f));
-        bodyFont.draw(batch, "Display", 120f, SCREEN_H - 130f);
+        batch.setColor(panelBorder);
+        batch.draw(pixel, titleX - 140f, titleY - 12f, 110f, 1f);
+        batch.draw(pixel, titleX + layout.width + 30f, titleY - 12f, 110f, 1f);
 
-        bodyFont.setColor(Color.LIGHT_GRAY);
-        bodyFont.draw(batch,
-                "Mode: " + (fullscreen ? "Fullscreen" : "Windowed (1280x720)"),
-                160f, SCREEN_H - 165f);
+        float currentY = titleY - 60f;
 
-        drawButton("Toggle Display Mode",
-                140f, SCREEN_H - 230f, 320f, 48f, hovered == BTN_TOGGLE);
+        float displayH = 140f;
+        currentY -= displayH;
 
-        // ---- Controls section ----
-        bodyFont.setColor(new Color(0.95f, 0.85f, 0.5f, 1f));
-        bodyFont.draw(batch, "Controls", 120f, SCREEN_H - 320f);
+        batch.setColor(panelBg);
+        batch.draw(pixel, panelX, currentY, panelW, displayH);
+        batch.setColor(panelBorder);
+        batch.draw(pixel, panelX, currentY, panelW, 1.5f);
+        batch.draw(pixel, panelX, currentY + displayH - 1.5f, panelW, 1.5f);
+        batch.draw(pixel, panelX, currentY, 1.5f, displayH);
+        batch.draw(pixel, panelX + panelW - 1.5f, currentY, 1.5f, displayH);
 
-        bodyFont.setColor(Color.LIGHT_GRAY);
-        float listY = SCREEN_H - 360f;
+        bodyFont.setColor(goldTheme);
+        bodyFont.draw(batch, "DISPLAY", panelX + 30f, currentY + displayH - 24f);
+        batch.setColor(panelBorder);
+        batch.draw(pixel, panelX + 110f, currentY + displayH - 32f, panelW - 140f, 1f);
+
+        bodyFont.setColor(Color.GRAY);
+        bodyFont.draw(batch, "Window Mode", panelX + 30f, currentY + 75f);
+        bodyFont.setColor(Color.WHITE);
+        bodyFont.draw(batch, fullscreen ? "Fullscreen" : "Windowed • 1280 × 720", panelX + 30f, currentY + 45f);
+
+        drawButton("TOGGLE MODE", panelX + panelW - 220f - 30f, currentY + 42f, 220f, 44f, hovered == BTN_TOGGLE);
+
+        currentY -= 24f;
+        float controlsH = 300f;
+        currentY -= controlsH;
+
+        batch.setColor(panelBg);
+        batch.draw(pixel, panelX, currentY, panelW, controlsH);
+        batch.setColor(panelBorder);
+        batch.draw(pixel, panelX, currentY, panelW, 1.5f);
+        batch.draw(pixel, panelX, currentY + controlsH - 1.5f, panelW, 1.5f);
+        batch.draw(pixel, panelX, currentY, 1.5f, controlsH);
+        batch.draw(pixel, panelX + panelW - 1.5f, currentY, 1.5f, controlsH);
+
+        bodyFont.setColor(goldTheme);
+        bodyFont.draw(batch, "CONTROLS", panelX + 30f, currentY + controlsH - 24f);
+        batch.setColor(panelBorder);
+        batch.draw(pixel, panelX + 130f, currentY + controlsH - 32f, panelW - 160f, 1f);
+
+        float startTableY = currentY + controlsH - 80f;
+        float centerDividerX = panelX + (panelW / 2f) - 30f;
+
         for (int i = 0; i < KEY_BINDINGS.length; i++) {
-            float y = listY - i * 28f;
-            bodyFont.draw(batch, KEY_BINDINGS[i][0], 160f, y);
-            bodyFont.draw(batch, KEY_BINDINGS[i][1], 380f, y);
+            float rowY = startTableY - (i * 42f);
+
+            layout.setText(bodyFont, KEY_BINDINGS[i][0]);
+            float badgeW = layout.width + 24f;
+            float badgeH = 30f;
+            float badgeX = centerDividerX - badgeW - 20f;
+            float badgeY = rowY - 10f;
+
+            batch.setColor(0.11f, 0.09f, 0.08f, 0.7f);
+            batch.draw(pixel, badgeX, badgeY, badgeW, badgeH);
+            batch.setColor(panelBorder);
+            batch.draw(pixel, badgeX, badgeY, badgeW, 1f);
+            batch.draw(pixel, badgeX, badgeY + badgeH - 1f, badgeW, 1f);
+            batch.draw(pixel, badgeX, badgeY, 1f, badgeH);
+            batch.draw(pixel, badgeX + badgeW - 1f, badgeY, 1f, badgeH);
+
+            bodyFont.setColor(goldTheme);
+            bodyFont.draw(batch, layout, badgeX + 12f, badgeY + badgeH - 8f);
+
+            bodyFont.setColor(textLight);
+            bodyFont.draw(batch, KEY_BINDINGS[i][1], centerDividerX + 20f, rowY + 12f);
+
+            if (i < KEY_BINDINGS.length - 1) {
+                batch.setColor(0.14f, 0.12f, 0.12f, 1f);
+                batch.draw(pixel, panelX + 30f, rowY - 22f, panelW - 60f, 1f);
+            }
         }
 
-        // ---- Back button ----
-        drawButton("Back", (SCREEN_W - 200f) / 2f, 40f, 200f, 50f, hovered == BTN_BACK);
+        batch.setColor(panelBorder);
+        batch.draw(pixel, centerDividerX, currentY + 25f, 1f, controlsH - 110f);
+
+        drawButton("←  BACK", panelX + panelW - 160f, currentY - 70f, 160f, 44f, hovered == BTN_BACK);
 
         batch.end();
     }
 
     private void drawButton(String label, float x, float y, float w, float h, boolean isHovered) {
-        Color bg     = isHovered ? new Color(0.30f, 0.20f, 0.10f, 1f) : new Color(0.12f, 0.10f, 0.14f, 1f);
-        Color border = isHovered ? new Color(0.95f, 0.75f, 0.35f, 1f) : new Color(0.45f, 0.35f, 0.20f, 1f);
 
-        batch.setColor(border);
-        batch.draw(pixel, x - 2, y - 2, w + 4, h + 4);
+        Color bg     = isHovered ? new Color(0.35f, 0.25f, 0.12f, 1f) : new Color(0.13f, 0.11f, 0.12f, 1f);
+        Color border = isHovered ? goldTheme : new Color(0.35f, 0.28f, 0.18f, 1f);
+
         batch.setColor(bg);
         batch.draw(pixel, x, y, w, h);
+
+        batch.setColor(border);
+        batch.draw(pixel, x, y, w, 1.5f);
+        batch.draw(pixel, x, y + h - 1.5f, w, 1.5f);
+        batch.draw(pixel, x, y, 1.5f, h);
+        batch.draw(pixel, x + w - 1.5f, y, 1.5f, h);
         batch.setColor(Color.WHITE);
 
-        bodyFont.setColor(isHovered ? new Color(1f, 0.95f, 0.7f, 1f) : Color.LIGHT_GRAY);
+        bodyFont.setColor(isHovered ? Color.WHITE : Color.LIGHT_GRAY);
         layout.setText(bodyFont, label);
-        bodyFont.draw(batch, layout,
-                x + (w - layout.width) / 2f,
-                y + (h + layout.height) / 2f);
+        bodyFont.draw(batch, layout, x + (w - layout.width) / 2f, y + (h + layout.height) / 2f);
     }
 
     private int buttonAt(int screenX, int screenY) {
@@ -216,8 +265,12 @@ public class SettingsScreen extends BaseScreen {
         viewport.unproject(touchTmp);
         float vx = touchTmp.x;
         float vy = touchTmp.y;
-        if (inRect(vx, vy, 140f, SCREEN_H - 230f, 320f, 48f)) return BTN_TOGGLE;
-        if (inRect(vx, vy, (SCREEN_W - 200f) / 2f, 40f, 200f, 50f)) return BTN_BACK;
+
+        float toggleY = SCREEN_H - 60f - 60f - 140f + 42f;
+        float backY = SCREEN_H - 60f - 60f - 140f - 24f - 300f - 70f;
+
+        if (inRect(vx, vy, panelX + panelW - 220f - 30f, toggleY, 220f, 44f)) return BTN_TOGGLE;
+        if (inRect(vx, vy, panelX + panelW - 160f, backY, 160f, 44f)) return BTN_BACK;
         return -1;
     }
 

@@ -5,12 +5,6 @@ import com.ashenthrone.characters.AbstractCharacter;
 
 import java.util.List;
 
-/**
- * Restores 30 % of the attacker's maximum HP.
- *
- * The {@code targets} list is ignored — this skill always acts on the
- * attacker. Healing is capped at maxHp by {@link AbstractCharacter#heal}.
- */
 public class HealSelf implements AttackStrategy {
 
     @Override

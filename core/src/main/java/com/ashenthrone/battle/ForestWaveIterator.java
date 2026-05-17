@@ -6,11 +6,6 @@ import com.ashenthrone.factory.RealmFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Cursed Forest waves (AT-026):
- *   wave 1: 3× minion       (Hollow Wolves)
- *   wave 2: 1× elite + 2× minion (Treant + Hollow Wolves)
- */
 public class ForestWaveIterator implements WaveIterator {
 
     private static final int TOTAL_WAVES = 2;
@@ -50,7 +45,7 @@ public class ForestWaveIterator implements WaveIterator {
                 wave.add(factory.createMinion());
                 wave.add(factory.createMinion());
             }
-            default -> { /* 0 or out-of-range → empty list */ }
+            default -> {  }
         }
         return wave;
     }

@@ -6,20 +6,6 @@ import com.ashenthrone.characters.Hero;
 import com.ashenthrone.observer.EventListener;
 import com.ashenthrone.observer.GameEvent;
 
-/**
- * Triggers sound effects in response to combat events (AT-021).
- *
- * <p>Routing:
- * <ul>
- *   <li>{@code DAMAGE_DEALT}   → {@code hero_hurt} when the target is the
- *       Hero. Attack-flavour SFX (sword_hit / fireball) are fired by the
- *       attacking strategy itself, since this event lacks strategy info.</li>
- *   <li>{@code CHARACTER_DIED} → {@code enemy_death} for non-Hero deaths;
- *       Hero death is handled by the {@code BATTLE_END} sting.</li>
- *   <li>{@code BATTLE_END}     → {@code victory_sting} or {@code defeat_sting}
- *       depending on result.</li>
- * </ul>
- */
 public class AudioListener implements EventListener {
 
     @Override

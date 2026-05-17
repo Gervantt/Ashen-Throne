@@ -10,15 +10,6 @@ import com.ashenthrone.transition.ScreenType;
 import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-/**
- * Terminal state reached when the hero's HP drops to zero.
- *
- * Key bindings (translated by BattleInputAdapter, AT-012):
- *   Enter/Space — retry the current encounter
- *   Escape/Z    — return to the main menu and keep run progress
- *
- * Both actions now navigate through AshenThroneGame.setScreen() (AT-013).
- */
 public class DefeatState implements BattleState, BattleInputAdapter.ActionListener {
 
     private final BattleScreen screen;
@@ -26,15 +17,13 @@ public class DefeatState implements BattleState, BattleInputAdapter.ActionListen
 
     public DefeatState(BattleScreen screen) {
         this.screen = screen;
-        // AT-012: register as the active input listener for this state.
+
         screen.getInputAdapter().setListener(this);
     }
 
-    // ---- BattleState ----
-
     @Override
     public void handleInput() {
-        // Input arrives via ActionListener callbacks — no polling needed.
+
     }
 
     @Override
@@ -47,19 +36,14 @@ public class DefeatState implements BattleState, BattleInputAdapter.ActionListen
 
     @Override
     public void render(SpriteBatch batch) {
-        // Retry / Main Menu UI lives on DefeatScreen (AT-013/AT-024); this
-        // state is transient — the next BATTLE_END tick navigates away.
+
     }
 
-    // ---- BattleInputAdapter.ActionListener ----
-
-    /** Enter/Space — retry the encounter. */
     @Override
     public void onConfirm() {
         retryEncounter();
     }
 
-    /** Escape/Z — exit to main menu. */
     @Override
     public void onCancel() {
         returnToMainMenu();
@@ -67,8 +51,6 @@ public class DefeatState implements BattleState, BattleInputAdapter.ActionListen
 
     @Override public void onActionSelected(ActionType type) {}
     @Override public void onTargetSelected(int enemyIndex)  {}
-
-    // ---- Navigation ----
 
     private void retryEncounter() {
         TransitionManager.getInstance().goToDefeat(screen.getHero());

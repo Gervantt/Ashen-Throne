@@ -19,20 +19,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-/**
- * Main menu (AT-016).
- *
- * Four vertically stacked buttons centered on screen: Play, Shop, Settings,
- * Exit. Navigated by mouse hover/click or arrow-keys + Enter.
- *
- * Audio: starts the main-theme music on {@link #show()} and stops it on
- * {@link #hide()}; every button press fires the {@code transition_whoosh}
- * SFX. Both go through {@link AudioManager}, whose methods are still
- * skeleton (AT-014) — concrete sounds wire in at AT-021.
- *
- * Background is a flat dark fantasy placeholder fill until AT-021 supplies
- * the texture.
- */
 public class MainMenuScreen extends BaseScreen {
 
     private static final int SCREEN_W = 1280;
@@ -47,7 +33,7 @@ public class MainMenuScreen extends BaseScreen {
     private BitmapFont   titleFont;
     private BitmapFont   buttonFont;
     private Texture      pixel;
-    private Texture      background; // backgrounds/main_menu.png; null falls back to flat clear color
+    private Texture      background;
     private GlyphLayout  layout;
     private Viewport     viewport;
     private final Vector3 touchTmp = new Vector3();
@@ -101,7 +87,7 @@ public class MainMenuScreen extends BaseScreen {
                     return true;
                 }
                 if (keycode == Input.Keys.ESCAPE) {
-                    activate(LABELS.length - 1); // Exit
+                    activate(LABELS.length - 1);
                     return true;
                 }
                 return false;
@@ -136,20 +122,17 @@ public class MainMenuScreen extends BaseScreen {
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
-        // Fullscreen background — falls back to flat clear color if the PNG is missing.
         if (background != null) {
             batch.setColor(Color.WHITE);
             batch.draw(background, 0, 0, SCREEN_W, SCREEN_H);
         }
 
-        // Title.
         titleFont.setColor(new Color(0.85f, 0.7f, 0.3f, 1f));
         layout.setText(titleFont, "ASHEN THRONE");
         titleFont.draw(batch, layout,
                 (SCREEN_W - layout.width) / 2f,
                 SCREEN_H - 120f);
 
-        // Buttons.
         float totalH = LABELS.length * BTN_H + (LABELS.length - 1) * BTN_GAP;
         float firstY = (SCREEN_H + totalH) / 2f - BTN_H;
 
@@ -166,10 +149,9 @@ public class MainMenuScreen extends BaseScreen {
         Color bg     = isHovered ? new Color(0.30f, 0.20f, 0.10f, 1f) : new Color(0.12f, 0.10f, 0.14f, 1f);
         Color border = isHovered ? new Color(0.95f, 0.75f, 0.35f, 1f) : new Color(0.45f, 0.35f, 0.20f, 1f);
 
-        // Border (frame).
         batch.setColor(border);
         batch.draw(pixel, x - 2, y - 2, BTN_W + 4, BTN_H + 4);
-        // Fill.
+
         batch.setColor(bg);
         batch.draw(pixel, x, y, BTN_W, BTN_H);
         batch.setColor(Color.WHITE);
@@ -181,10 +163,9 @@ public class MainMenuScreen extends BaseScreen {
                 y + (BTN_H + layout.height) / 2f);
     }
 
-    /** Returns the button index under window-space coordinates, or -1. */
     private int buttonAt(int screenX, int screenY) {
         touchTmp.set(screenX, screenY, 0);
-        viewport.unproject(touchTmp); // window pixels → virtual 1280x720 coords.
+        viewport.unproject(touchTmp);
         float vx = touchTmp.x;
         float vy = touchTmp.y;
         float totalH = LABELS.length * BTN_H + (LABELS.length - 1) * BTN_GAP;
@@ -215,7 +196,7 @@ public class MainMenuScreen extends BaseScreen {
             case 1 -> tm.goTo(ScreenType.SHOP);
             case 2 -> tm.goTo(ScreenType.SETTINGS);
             case 3 -> {
-                // Exit: no transition needed; the whoosh still gives audio feedback.
+
                 AudioManager.getInstance().playSFX("transition_whoosh");
                 Gdx.app.exit();
             }
@@ -224,8 +205,7 @@ public class MainMenuScreen extends BaseScreen {
 
     @Override
     public void hide() {
-        // Main theme persists across menu screens — it is only stopped by
-        // BattleScreen when entering a fight.
+
     }
 
     @Override

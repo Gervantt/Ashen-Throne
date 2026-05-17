@@ -15,18 +15,6 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
 
-/**
- * Modal pause overlay shown when the player presses Escape mid-battle (AT-023).
- *
- * <p>Holds a reference to the previous {@link BattleState} and restores it on
- * "Continue". On "Exit to Menu" abandons the active fight and navigates back
- * to the main menu. While this state is active the underlying battle is frozen:
- * neither {@link #update} nor enemy AI run, since {@link BattleScreen} only
- * ticks the current state.
- *
- * <p>Renders into the second-pass {@link #renderOverlay} hook so the dimming
- * appears on top of the HUD.
- */
 public class PauseState implements BattleState, BattleInputAdapter.ActionListener, Disposable {
 
     private static final int   SCREEN_W = 1280;
@@ -63,35 +51,28 @@ public class PauseState implements BattleState, BattleInputAdapter.ActionListene
         this.pixel = new Texture(pm);
         pm.dispose();
 
-        // Become the active input listener while paused.
         screen.getInputAdapter().setListener(this);
     }
 
-    // ---- BattleState ----
-
     @Override public void handleInput() {}
 
-    /** No game logic ticks while paused (AT-023 spec). */
     @Override public void update(float delta) {}
 
-    /** First pass — nothing; the dim+menu draw in the overlay pass on top of the HUD. */
     @Override public void render(SpriteBatch batch) {}
 
     @Override
     public void renderOverlay(SpriteBatch batch) {
-        // Dim the entire screen.
+
         batch.setColor(0f, 0f, 0f, 0.65f);
         batch.draw(pixel, 0, 0, SCREEN_W, SCREEN_H);
         batch.setColor(Color.WHITE);
 
-        // Title.
         titleFont.setColor(new Color(0.95f, 0.85f, 0.4f, 1f));
         layout.setText(titleFont, "PAUSED");
         titleFont.draw(batch, layout,
                 (SCREEN_W - layout.width) / 2f,
                 SCREEN_H / 2f + 140f);
 
-        // Buttons stacked vertically, centered.
         float totalH = LABELS.length * BTN_H + (LABELS.length - 1) * BTN_GAP;
         float firstY = (SCREEN_H + totalH) / 2f - BTN_H - 30f;
         for (int i = 0; i < LABELS.length; i++) {
@@ -120,8 +101,6 @@ public class PauseState implements BattleState, BattleInputAdapter.ActionListene
                 y + (BTN_H + layout.height) / 2f);
     }
 
-    // ---- ActionListener ----
-
     @Override public void onActionSelected(ActionType type) {}
     @Override public void onTargetSelected(int enemyIndex)  {}
 
@@ -132,22 +111,18 @@ public class PauseState implements BattleState, BattleInputAdapter.ActionListene
         else                         exitToMenu();
     }
 
-    /** Z while paused — also resumes, mirroring Escape's "back out" intuition. */
     @Override
     public void onCancel() {
         resume();
     }
 
-    /** Pressing Escape again while paused resumes the battle. */
     @Override
     public void onPause() {
         resume();
     }
 
-    // ---- Navigation ----
-
     private void resume() {
-        // Restore the previous state's listener registration, then dispose our resources.
+
         screen.setState(previous);
         if (previous instanceof BattleInputAdapter.ActionListener prevListener) {
             screen.getInputAdapter().setListener(prevListener);

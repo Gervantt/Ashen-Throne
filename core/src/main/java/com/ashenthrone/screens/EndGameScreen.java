@@ -19,12 +19,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-/**
- * Final screen shown after defeating The Hollow King (AT-013, AT-024).
- *
- * <p>Displays a victory message and a single "Main Menu" button. Resets the
- * session on exit so the player starts fresh on the next run.
- */
 public class EndGameScreen extends BaseScreen {
 
     private static final int SCREEN_W = 1280;
@@ -176,7 +170,7 @@ public class EndGameScreen extends BaseScreen {
     }
 
     private void activate() {
-        // Final screen — wipe the run completely.
+
         GameSession.getInstance().reset();
         TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
     }

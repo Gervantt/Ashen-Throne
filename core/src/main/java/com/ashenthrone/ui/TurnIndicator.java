@@ -6,13 +6,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.function.Supplier;
 
-/**
- * Top-center label that announces whose turn it is (AT-015).
- *
- * Reads its label live from a {@link Supplier} so it stays in sync with the
- * battle state machine without observers — the screen passes a lambda that
- * inspects {@code currentState}.
- */
 public class TurnIndicator extends UIComponent {
 
     private static final Color BG_COLOR   = new Color(0f, 0f, 0f, 0.55f);

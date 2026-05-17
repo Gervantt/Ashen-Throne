@@ -4,29 +4,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-/**
- * Horizontal timing bar shown when the player confirms an Attack.
- *
- * A cursor bounces left-right across the bar at a constant speed.
- * The player presses Confirm to stop it; where it lands determines the
- * damage multiplier:
- *
- * <pre>
- *   |x - 0.5| &lt; 0.02   → CRITICAL  (red,    2.0×)
- *   |x - 0.5| &lt; 0.10   → GREAT     (green,  1.0×)
- *   |x - 0.5| &lt; 0.25   → WEAK      (yellow, 0.5×)
- *   else               → MISS      (gray,   0×)
- * </pre>
- *
- * Zone widths are expressed as a half-width fraction of the bar
- * (so {@code 0.10} means a band from 40 % to 60 % of the bar).
- *
- * Owned by {@link com.ashenthrone.battle.state.TimingBarState}, which
- * adds it to the HUD while the player is aiming.
- */
 public class TimingBar extends UIComponent {
 
-    /** Outcome zones, ordered from best to worst. */
     public enum Result {
         CRITICAL(2.0f, "CRITICAL!"),
         GREAT   (1.0f, "GREAT"),
@@ -45,9 +24,7 @@ public class TimingBar extends UIComponent {
     private static final float GREAT_HALF_WIDTH = 0.10f;
     private static final float WEAK_HALF_WIDTH  = 0.25f;
 
-    /** Sweeps per second (full left↔right cycle). One sweep ≈ 1.0 s. */
     private static final float CURSOR_SPEED = 1.0f;
-    /** Cursor width in pixels. */
     private static final float CURSOR_W = 4f;
 
     private static final Color BG_FRAME = new Color(0.08f, 0.08f, 0.10f, 0.95f);
@@ -59,11 +36,8 @@ public class TimingBar extends UIComponent {
 
     private final GlyphLayout layout = new GlyphLayout();
 
-    /** Cursor position as a fraction of the bar, in [0, 1]. */
     private float cursorPos = 0f;
-    /** Sign of cursor velocity (+1 right, -1 left). */
     private float direction = 1f;
-    /** When non-null, the bar has stopped and shows this outcome. */
     private Result stoppedAt;
 
     public TimingBar(float x, float y, float width, float height) {
@@ -73,10 +47,6 @@ public class TimingBar extends UIComponent {
         this.height = height;
     }
 
-    /**
-     * Stops the cursor and returns the resulting hit zone.
-     * Subsequent calls return the same cached result.
-     */
     public Result stop() {
         if (stoppedAt == null) {
             stoppedAt = resultAt(cursorPos);
@@ -106,25 +76,21 @@ public class TimingBar extends UIComponent {
     public void render(SpriteBatch batch) {
         if (!visible) return;
 
-        // Frame / background (miss zone fills the whole bar by default).
         batch.setColor(BG_FRAME);
         float pad = 3f;
         batch.draw(pixel(), x - pad, y - pad, width + pad * 2, height + pad * 2);
         batch.setColor(BG_MISS);
         batch.draw(pixel(), x, y, width, height);
 
-        // Zones, drawn widest first so the narrower ones overlay on top.
         drawZone(batch, WEAK_HALF_WIDTH,  C_WEAK);
         drawZone(batch, GREAT_HALF_WIDTH, C_GREAT);
         drawZone(batch, CRIT_HALF_WIDTH,  C_CRIT);
 
-        // Cursor.
         float cursorX = x + cursorPos * width - CURSOR_W / 2f;
         batch.setColor(CURSOR);
         batch.draw(pixel(), cursorX, y - 4f, CURSOR_W, height + 8f);
         batch.setColor(Color.WHITE);
 
-        // Hint / result label centered above the bar.
         String text = stoppedAt != null ? stoppedAt.label : "Press SPACE / ENTER";
         font().setColor(stoppedAt != null ? labelColor(stoppedAt) : Color.WHITE);
         layout.setText(font(), text);

@@ -5,12 +5,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-/**
- * A single action button in the battle menu (AT-011).
- *
- * Renders a dark-grey rectangle with the action label centered inside.
- * When selected, a yellow highlight border is drawn around the button.
- */
 public class ActionButton extends UIComponent {
 
     private static final Color BG_COLOR       = new Color(0.15f, 0.15f, 0.2f, 0.9f);
@@ -44,18 +38,15 @@ public class ActionButton extends UIComponent {
     public void render(SpriteBatch batch) {
         if (!visible) return;
 
-        // Yellow border when selected
         if (selected) {
             batch.setColor(SELECTED_COLOR);
             batch.draw(pixel(), x - BORDER, y - BORDER, width + BORDER * 2, height + BORDER * 2);
         }
 
-        // Button background
         batch.setColor(BG_COLOR);
         batch.draw(pixel(), x, y, width, height);
         batch.setColor(Color.WHITE);
 
-        // Centered label
         font().setColor(selected ? SELECTED_COLOR : Color.WHITE);
         layout.setText(font(), label);
         float textX = x + (width  - layout.width)  / 2f;

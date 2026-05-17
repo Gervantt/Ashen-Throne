@@ -6,20 +6,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Determines the order in which enemies act during the enemy phase.
- *
- * Enemies are sorted by speed descending — the fastest enemy acts first.
- * Only alive enemies are included. Hero and enemy phases are separate
- * (player → enemy → player), so a single sort over the enemy list is
- * sufficient.
- */
 public class TurnManager {
 
-    /**
-     * Returns alive enemies sorted by speed descending.
-     * The original list is not modified.
-     */
     public List<Enemy> getActingOrder(List<Enemy> enemies) {
         return enemies.stream()
                 .filter(Enemy::isAlive)

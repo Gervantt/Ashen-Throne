@@ -24,24 +24,11 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-/**
- * Hero roster / selection screen (AT-018).
- *
- * Mortal-Kombat-style layout: a vertical column of five hero portraits on
- * the left, and a preview panel on the right showing the highlighted hero's
- * full art, stats, description, and a "Choose" button. Picking a hero
- * constructs them via {@link HeroBuilder}, stores them on
- * {@link GameSession}, and routes to {@link RealmSelectScreen}.
- *
- * Sprite assets (hero_*_sheet.png) are not yet bundled — placeholder color
- * blocks stand in for portraits and the preview image until art lands.
- */
 public class HeroSelectScreen extends BaseScreen {
 
     private static final int SCREEN_W = 1280;
     private static final int SCREEN_H = 720;
 
-    /** Per-hero data: name, hp, attack, defense, speed, role tag, color, description. */
     private static final HeroDef[] HEROES = {
             new HeroDef("Kael",     120, 18, 12, 10, "Warrior",
                     new Color(0.75f, 0.30f, 0.25f, 1f),
@@ -61,20 +48,16 @@ public class HeroSelectScreen extends BaseScreen {
                     "Frail, but always the first to act."),
     };
 
-    // ---- Layout constants ----
     private static final float PORTRAIT_X = 60f;
     private static final float PORTRAIT_W = 110f;
     private static final float PORTRAIT_H = 110f;
-    /** Vertical gap between successive portrait tiles. Must clear the name
-     *  label drawn below each tile (see {@link #LABEL_DROP}). */
     private static final float PORTRAIT_GAP = 38f;
-    /** Distance from the bottom of the portrait to the baseline of its name. */
     private static final float LABEL_DROP = 22f;
 
     private static final float PANEL_X = 230f;
     private static final float PANEL_Y = 80f;
-    private static final float PANEL_W = SCREEN_W - PANEL_X - 60f; // 990
-    private static final float PANEL_H = SCREEN_H - PANEL_Y - 80f; // 560
+    private static final float PANEL_W = SCREEN_W - PANEL_X - 60f;
+    private static final float PANEL_H = SCREEN_H - PANEL_Y - 80f;
 
     private static final float PREVIEW_W = 360f;
     private static final float PREVIEW_H = 380f;
@@ -89,7 +72,7 @@ public class HeroSelectScreen extends BaseScreen {
     private BitmapFont  nameFont;
     private BitmapFont  bodyFont;
     private Texture     pixel;
-    private Texture[]   avatars; // hero_<key>_avatar.png; null entries fall back to colored block
+    private Texture[]   avatars;
     private GlyphLayout layout;
     private Viewport    viewport;
     private final Vector3 touchTmp = new Vector3();
@@ -120,12 +103,8 @@ public class HeroSelectScreen extends BaseScreen {
         pixel = new Texture(pm);
         pm.dispose();
 
-        // Main theme persists across menu/shop/settings/hero-select/tower
-        // (idempotent — won't restart if already playing).
         AudioManager.getInstance().playMusic("main_theme");
 
-        // Hero avatars (AT-018 / AT-021) — used in both the portrait list and the
-        // big preview. Missing files degrade to the tinted-block placeholder.
         avatars = new Texture[HEROES.length];
         for (int i = 0; i < HEROES.length; i++) {
             String key = HEROES[i].name.toLowerCase();
@@ -200,7 +179,6 @@ public class HeroSelectScreen extends BaseScreen {
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
-        // Title.
         titleFont.setColor(new Color(0.85f, 0.7f, 0.3f, 1f));
         layout.setText(titleFont, "CHOOSE YOUR HERO");
         titleFont.draw(batch, layout, (SCREEN_W - layout.width) / 2f, SCREEN_H - 30f);
@@ -219,13 +197,11 @@ public class HeroSelectScreen extends BaseScreen {
             float py = firstY - i * (PORTRAIT_H + PORTRAIT_GAP);
             boolean isSel = (i == selected);
 
-            // Frame.
             Color border = isSel ? new Color(0.95f, 0.75f, 0.35f, 1f)
                                  : new Color(0.40f, 0.30f, 0.18f, 1f);
             batch.setColor(border);
             batch.draw(pixel, PORTRAIT_X - 3, py - 3, PORTRAIT_W + 6, PORTRAIT_H + 6);
 
-            // Avatar texture if available, otherwise fall back to a tinted block.
             if (avatars[i] != null) {
                 batch.setColor(Color.WHITE);
                 batch.draw(avatars[i], PORTRAIT_X, py, PORTRAIT_W, PORTRAIT_H);
@@ -235,7 +211,6 @@ public class HeroSelectScreen extends BaseScreen {
                 batch.setColor(Color.WHITE);
             }
 
-            // Name label below portrait (extra drop so it doesn't overlap the avatar).
             bodyFont.setColor(isSel ? new Color(1f, 0.95f, 0.7f, 1f) : Color.LIGHT_GRAY);
             layout.setText(bodyFont, HEROES[i].name);
             bodyFont.draw(batch, layout,
@@ -245,7 +220,7 @@ public class HeroSelectScreen extends BaseScreen {
     }
 
     private void drawPreviewPanel() {
-        // Panel frame.
+
         batch.setColor(new Color(0.18f, 0.14f, 0.10f, 1f));
         batch.draw(pixel, PANEL_X - 2, PANEL_Y - 2, PANEL_W + 4, PANEL_H + 4);
         batch.setColor(new Color(0.10f, 0.08f, 0.12f, 1f));
@@ -254,12 +229,11 @@ public class HeroSelectScreen extends BaseScreen {
 
         HeroDef h = HEROES[selected];
 
-        // Preview image — uses hero_<name>.png if present, falls back to color block.
         float imgX = PANEL_X + 30f;
         float imgY = PANEL_Y + PANEL_H - PREVIEW_H - 30f;
         batch.setColor(new Color(0.25f, 0.20f, 0.15f, 1f));
         batch.draw(pixel, imgX - 3, imgY - 3, PREVIEW_W + 6, PREVIEW_H + 6);
-        // Big preview uses the avatar (face/portrait shot), not the battle sprite sheet.
+
         if (avatars[selected] != null) {
             batch.setColor(Color.WHITE);
             batch.draw(avatars[selected], imgX, imgY, PREVIEW_W, PREVIEW_H);
@@ -269,7 +243,6 @@ public class HeroSelectScreen extends BaseScreen {
             batch.setColor(Color.WHITE);
         }
 
-        // Stats / role panel to the right of the image.
         float infoX = imgX + PREVIEW_W + 40f;
         float infoY = PANEL_Y + PANEL_H - 50f;
 
@@ -290,7 +263,6 @@ public class HeroSelectScreen extends BaseScreen {
         bodyFont.draw(batch, "Speed",   infoX,         statY - 90f);
         bodyFont.draw(batch, String.valueOf(h.speed),   infoX + 140f, statY - 90f);
 
-        // Description, multi-line, below the image.
         bodyFont.setColor(new Color(0.85f, 0.80f, 0.70f, 1f));
         float descY = imgY - 20f;
         for (String line : h.description.split("\n")) {
@@ -327,8 +299,6 @@ public class HeroSelectScreen extends BaseScreen {
                 x + (w - layout.width) / 2f,
                 y + (h + layout.height) / 2f);
     }
-
-    // ---- Hit testing ----
 
     private float portraitFirstY() {
         float total = HEROES.length * PORTRAIT_H + (HEROES.length - 1) * PORTRAIT_GAP;
@@ -406,7 +376,6 @@ public class HeroSelectScreen extends BaseScreen {
         TransitionManager.getInstance().goTo(ScreenType.REALM_SELECT);
     }
 
-    /** Default attack strategy per role (AT-008 / AT-018). */
     private static AttackStrategy defaultSkillFor(String role) {
         return switch (role) {
             case "Dark Mage" -> new MagicAttack();
@@ -430,7 +399,6 @@ public class HeroSelectScreen extends BaseScreen {
         }
     }
 
-    // ---- Internal data carrier ----
     private static final class HeroDef {
         final String name;
         final int hp, attack, defense, speed;

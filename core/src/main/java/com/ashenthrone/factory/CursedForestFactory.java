@@ -5,10 +5,6 @@ import com.ashenthrone.battle.WaveIterator;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.prototype.EnemyRegistry;
 
-/**
- * Concrete Abstract Factory — Cursed Forest realm.
- * Produces HollowWolf (minion), Treant (elite), and HollowKing (boss).
- */
 public class CursedForestFactory implements RealmFactory {
 
     private final EnemyRegistry registry = EnemyRegistry.getInstance();

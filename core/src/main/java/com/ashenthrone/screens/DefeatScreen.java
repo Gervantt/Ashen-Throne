@@ -25,13 +25,6 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.List;
 
-/**
- * Post-battle defeat screen (AT-013, AT-024).
- *
- * <p>Two buttons (Retry / Main Menu), navigated by Up/Down + Enter or by mouse
- * click. Retry restarts the current realm wave with a freshly healed hero;
- * Main Menu returns to the main menu without resetting cleared-realm progress.
- */
 public class DefeatScreen extends BaseScreen {
 
     private static final int SCREEN_W = 1280;
@@ -205,8 +198,6 @@ public class DefeatScreen extends BaseScreen {
         if (pixel != null) pixel.dispose();
     }
 
-    // ---- Navigation ----
-
     private void activate(int index) {
         if (index == 0) retry();
         else            mainMenu();
@@ -227,14 +218,13 @@ public class DefeatScreen extends BaseScreen {
 
         AbstractCharacter equipped = ShopScreen.EquipmentApplier.apply(
                 baseHero, session.getEquippedItems());
-        // AT-026: rebuild the current wave through the iterator — fresh clones,
-        // no double-advance.
+
         List<Enemy> wave = iterator.currentWave();
         TransitionManager.getInstance().goToBattle(equipped, wave);
     }
 
     private void mainMenu() {
-        // Preserve cleared-realm progress; only clear in-progress pointers.
+
         GameSession session = GameSession.getInstance();
         session.abandonActiveRun();
         TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
