@@ -133,6 +133,17 @@ ashen-throne/
 | AT-013 | Singleton (Screens) | ✅ |
 | AT-014 | Singleton (Audio) | ✅ |
 | AT-015 | Composite (Visual Polish) | ✅ |
+| AT-016 | Composite (Menu UI) | ✅ |
+| AT-017 | Composite (Settings UI) | ✅ |
+| AT-018 | Visual Assets (Heroes) | ✅ |
+| AT-019 | Abstract Factory (Realm Factory) | ✅ |
+| AT-020 | Visual Assets (Characters) | ✅ |
+| AT-021 | Singleton (Audio Integration) | ✅ |
+| AT-022 | Composite (Fade Overlay) | ✅ |
+| AT-023 | State (Pause on ESC) | ✅ |
+| AT-024 | Mediator (Game Flow) | ✅ |
+| AT-025 | Mediator (Transition Manager) | ✅ |
+| AT-026 | Iterator (Wave Iterator) | ✅ |
 
 ---
 
