@@ -5,6 +5,7 @@ import com.ashenthrone.battle.ActionType;
 import com.ashenthrone.core.GameSession;
 import com.ashenthrone.input.BattleInputAdapter;
 import com.ashenthrone.screens.BattleScreen;
+import com.ashenthrone.screens.MainMenuScreen;
 import com.ashenthrone.transition.ScreenType;
 import com.ashenthrone.transition.TransitionManager;
 import com.badlogic.gdx.graphics.Color;
@@ -132,7 +133,7 @@ public class PauseState implements BattleState, BattleInputAdapter.ActionListene
 
     private void exitToMenu() {
         GameSession.getInstance().abandonActiveRun();
-        TransitionManager.getInstance().goTo(ScreenType.MAIN_MENU);
+        screen.getGame().setScreen(new MainMenuScreen(screen.getGame()));
         dispose();
     }
 
