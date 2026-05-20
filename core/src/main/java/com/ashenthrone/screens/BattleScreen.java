@@ -19,6 +19,7 @@ import com.ashenthrone.observer.EventType;
 import com.ashenthrone.observer.listeners.AudioListener;
 import com.ashenthrone.observer.listeners.HealthBarListener;
 import com.ashenthrone.observer.listeners.VictoryChecker;
+import com.ashenthrone.transition.TransitionManager;
 import com.ashenthrone.ui.ActionMenu;
 import com.ashenthrone.ui.BattleBackground;
 import com.ashenthrone.ui.CharacterSprite;
@@ -225,6 +226,9 @@ public class BattleScreen extends BaseScreen {
 
         currentState.renderOverlay(batch);
         batch.end();
+
+        TransitionManager.getInstance().update(delta);
+        TransitionManager.getInstance().render();
     }
 
     @Override
