@@ -1,6 +1,5 @@
 package com.ashenthrone.characters;
 
-import com.ashenthrone.strategy.HealSelf;
 import com.ashenthrone.strategy.PhysicalAttack;
 
 public class Enemy extends AbstractCharacter implements Cloneable {
@@ -14,15 +13,9 @@ public class Enemy extends AbstractCharacter implements Cloneable {
 
     @Override
     protected void chooseAction() {
-        boolean lowHp = (double) hp / maxHp < 0.30;
-        if (lowHp && currentStrategy instanceof HealSelf) {
-
-            return;
-        }
         if (currentStrategy == null) {
             currentStrategy = new PhysicalAttack();
         }
-
     }
 
     @Override

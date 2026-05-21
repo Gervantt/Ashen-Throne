@@ -2,7 +2,6 @@ package com.ashenthrone.characters.prototype;
 
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.characters.EnemyBuilder;
-import com.ashenthrone.strategy.MagicAttack;
 import com.ashenthrone.strategy.PhysicalAttack;
 
 import java.util.HashMap;
@@ -70,7 +69,7 @@ public class EnemyRegistry {
                 .name("Wraith").type("Wraith")
                 .hp(46).attack(18).defense(4).speed(13)
                 .build();
-        wraith.setCurrentStrategy(new MagicAttack());
+        wraith.setCurrentStrategy(new PhysicalAttack());
         templates.put("Wraith", wraith);
 
         templates.put("HollowWolf", new EnemyBuilder()
