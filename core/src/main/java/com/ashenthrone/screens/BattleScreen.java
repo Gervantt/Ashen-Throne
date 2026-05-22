@@ -28,6 +28,7 @@ import com.ashenthrone.ui.HealthBar;
 import com.ashenthrone.ui.Panel;
 import com.ashenthrone.ui.TurnIndicator;
 import com.ashenthrone.ui.UIComponent;
+import com.ashenthrone.util.StringUtils;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -167,7 +168,7 @@ public class BattleScreen extends BaseScreen {
             float enemyY = enemySpriteY();
             float ex = slotCenter - enemyW / 2f;
             Texture enemyTex = loadSprite("images/enemies/enemy_"
-                    + toSnakeCase(enemy.getType()) + ".png");
+                    + StringUtils.toSnakeCase(enemy.getType()) + ".png");
 
             CharacterSprite es = new CharacterSprite(enemy,
                     new Color(0.75f, 0.30f, 0.30f, 1f), enemyTex, frameCountFor(enemyTex),
@@ -292,16 +293,6 @@ public class BattleScreen extends BaseScreen {
         return 1;
     }
 
-    private static String toSnakeCase(String camel) {
-        if (camel == null || camel.isEmpty()) return "";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < camel.length(); i++) {
-            char c = camel.charAt(i);
-            if (Character.isUpperCase(c) && i > 0) sb.append('_');
-            sb.append(Character.toLowerCase(c));
-        }
-        return sb.toString();
-    }
 
     private int enemyAtScreenPos(int screenX, int screenY) {
         if (viewport == null) return -1;

@@ -7,11 +7,11 @@ import java.util.List;
 
 public class DeathChecker {
 
-    public boolean areAllEnemiesDefeated(List<Enemy> enemies) {
+    private boolean areAllEnemiesDefeated(List<Enemy> enemies) {
         return enemies.stream().noneMatch(Enemy::isAlive);
     }
 
-    public boolean isHeroDefeated(AbstractCharacter hero) {
+    private boolean isHeroDefeated(AbstractCharacter hero) {
         return !hero.isAlive();
     }
 

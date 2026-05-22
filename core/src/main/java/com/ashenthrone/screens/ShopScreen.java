@@ -7,6 +7,7 @@ import com.ashenthrone.core.GameSession;
 import com.ashenthrone.equipment.CursedRing;
 import com.ashenthrone.equipment.FireAmulet;
 import com.ashenthrone.equipment.ShadowBlade;
+import com.ashenthrone.util.StringUtils;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
@@ -103,7 +104,7 @@ public class ShopScreen extends BaseScreen {
         background = tryLoad("backgrounds/main_menu.png");
         itemIcons  = new Texture[ITEMS.length];
         for (int i = 0; i < ITEMS.length; i++) {
-            itemIcons[i] = tryLoad("images/items/item_" + toSnakeCase(ITEMS[i].id) + ".png");
+            itemIcons[i] = tryLoad("images/items/item_" + StringUtils.toSnakeCase(ITEMS[i].id) + ".png");
         }
 
         AudioManager.getInstance().playMusic("main_theme");
@@ -412,16 +413,6 @@ public class ShopScreen extends BaseScreen {
         return null;
     }
 
-    private static String toSnakeCase(String camel) {
-        if (camel == null || camel.isEmpty()) return "";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < camel.length(); i++) {
-            char c = camel.charAt(i);
-            if (Character.isUpperCase(c) && i > 0) sb.append('_');
-            sb.append(Character.toLowerCase(c));
-        }
-        return sb.toString();
-    }
 
     private static final class ItemDef {
         final String id;

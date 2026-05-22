@@ -21,7 +21,6 @@ public abstract class AbstractCharacter {
 
     public final void takeTurn() {
         beginTurn();
-        applyStatusEffects();
         chooseAction();
         executeAction();
         endTurn();
@@ -29,11 +28,6 @@ public abstract class AbstractCharacter {
 
     protected void beginTurn() {
         defending = false;
-    }
-
-
-    protected void applyStatusEffects() {
-
     }
 
     protected abstract void chooseAction();
