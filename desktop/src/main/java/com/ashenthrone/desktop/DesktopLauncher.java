@@ -16,6 +16,7 @@ public class DesktopLauncher {
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
         config.setTitle("Ashen Throne");
+        config.setWindowIcon("images/heroes/hero_thane_avatar.png");
         config.setWindowedMode(1280, 720);
         config.setResizable(false);
         config.useVsync(true);

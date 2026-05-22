@@ -51,8 +51,6 @@ public class AudioManager {
         nonLoopingMusic.add("defeat_sting");
 
         sfxPaths.put("sword_hit",         "audio/sfx/sword_hit.mp3");
-        sfxPaths.put("fireball",          "audio/sfx/fireball.mp3");
-        sfxPaths.put("heal_cast",         "audio/sfx/heal_cast.mp3");
         sfxPaths.put("enemy_death",       "audio/sfx/enemy_death.mp3");
         sfxPaths.put("hero_hurt",         "audio/sfx/hero_hurt.mp3");
         sfxPaths.put("transition_whoosh", "audio/sfx/transition_whoosh.mp3");

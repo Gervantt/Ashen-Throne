@@ -3,8 +3,6 @@ package com.ashenthrone.screens;
 import com.ashenthrone.audio.AudioManager;
 import com.ashenthrone.characters.Hero;
 import com.ashenthrone.characters.HeroBuilder;
-import com.ashenthrone.strategy.AttackStrategy;
-import com.ashenthrone.strategy.MagicAttack;
 import com.ashenthrone.strategy.PhysicalAttack;
 import com.ashenthrone.core.AshenThroneGame;
 import com.ashenthrone.core.GameSession;
@@ -370,17 +368,10 @@ public class HeroSelectScreen extends BaseScreen {
                 .attack(d.attack)
                 .defense(d.defense)
                 .speed(d.speed)
-                .skill(defaultSkillFor(d.role))
+                .skill(new PhysicalAttack())
                 .build();
         GameSession.getInstance().setHero(hero);
         TransitionManager.getInstance().goTo(ScreenType.REALM_SELECT);
-    }
-
-    private static AttackStrategy defaultSkillFor(String role) {
-        return switch (role) {
-            case "Dark Mage" -> new MagicAttack();
-            default          -> new PhysicalAttack();
-        };
     }
 
     private void back() {

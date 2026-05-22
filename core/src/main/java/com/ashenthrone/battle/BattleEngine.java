@@ -4,7 +4,6 @@ import com.ashenthrone.battle.command.BattleCommand;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
 import com.ashenthrone.strategy.AttackStrategy;
-import com.ashenthrone.strategy.MagicAttack;
 import com.ashenthrone.strategy.PhysicalAttack;
 
 import java.util.ArrayDeque;
@@ -63,11 +62,7 @@ public class BattleEngine {
             AttackStrategy strategy = enemy.getCurrentStrategy();
             if (strategy == null) strategy = new PhysicalAttack();
 
-            int effectiveDefense = (strategy instanceof MagicAttack)
-                    ? hero.getDefense() / 2
-                    : hero.getDefense();
-
-            int damage = damageCalculator.calculate(enemy.getAttack(), effectiveDefense);
+            int damage = damageCalculator.calculate(enemy.getAttack(), hero.getDefense());
             hero.takeDamage(damage);
         }
     }
