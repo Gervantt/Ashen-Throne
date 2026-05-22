@@ -3,8 +3,6 @@ package com.ashenthrone.battle;
 import com.ashenthrone.battle.command.BattleCommand;
 import com.ashenthrone.characters.AbstractCharacter;
 import com.ashenthrone.characters.Enemy;
-import com.ashenthrone.strategy.AttackStrategy;
-import com.ashenthrone.strategy.PhysicalAttack;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -14,10 +12,9 @@ import java.util.List;
 
 public class BattleEngine {
 
-    private final TurnManager            turnManager            = new TurnManager();
-    private final DamageCalculator       damageCalculator       = new DamageCalculator();
-    private final StatusEffectProcessor  statusEffectProcessor  = new StatusEffectProcessor();
-    private final DeathChecker           deathChecker           = new DeathChecker();
+    private final TurnManager      turnManager      = new TurnManager();
+    private final DamageCalculator damageCalculator = new DamageCalculator();
+    private final DeathChecker     deathChecker     = new DeathChecker();
 
     private AbstractCharacter hero;
     private List<Enemy>  enemies;
@@ -56,12 +53,6 @@ public class BattleEngine {
 
         for (Enemy enemy : actingEnemies) {
             if (!hero.isAlive()) break;
-
-            statusEffectProcessor.process(enemy);
-
-            AttackStrategy strategy = enemy.getCurrentStrategy();
-            if (strategy == null) strategy = new PhysicalAttack();
-
             int damage = damageCalculator.calculate(enemy.getAttack(), hero.getDefense());
             hero.takeDamage(damage);
         }
